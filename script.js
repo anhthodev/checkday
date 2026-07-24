@@ -13,7 +13,6 @@ const summaryParseErrors = document.getElementById("summaryParseErrors");
 const summaryInvalidDates = document.getElementById("summaryInvalidDates");
 const summaryHolidays = document.getElementById("summaryHolidays");
 const scrollTopButton = document.getElementById("scrollTopButton");
-const themeToggleButton = document.getElementById("themeToggleButton");
 
 const WEEKDAY_MAP = {
   0: "日",
@@ -38,8 +37,6 @@ function initializeApp() {
   inputText.addEventListener("keydown", handleTextareaEnter);
   window.addEventListener("scroll", handleScroll);
   scrollTopButton.addEventListener("click", scrollToTop);
-  themeToggleButton.addEventListener("click", toggleTheme);
-  loadTheme();
   handleScroll();
 }
 
@@ -74,29 +71,6 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function setTheme(theme) {
-  if (theme === "dark") {
-    document.body.classList.add("dark-mode");
-    themeToggleButton.textContent = "☀️";
-    themeToggleButton.setAttribute("aria-label", "Chuyển sang chế độ sáng");
-  } else {
-    document.body.classList.remove("dark-mode");
-    themeToggleButton.textContent = "🌙";
-    themeToggleButton.setAttribute("aria-label", "Chuyển sang chế độ tối");
-  }
-  localStorage.setItem("theme", theme);
-}
-
-function toggleTheme() {
-  const isDark = document.body.classList.contains("dark-mode");
-  setTheme(isDark ? "light" : "dark");
-}
-
-function loadTheme() {
-  const savedTheme = localStorage.getItem("theme");
-  const defaultTheme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  setTheme(savedTheme === "dark" || (!savedTheme && defaultTheme === "dark") ? "dark" : "light");
-}
 
 function handleCheck() {
   const rawText = inputText.value;

@@ -19,22 +19,6 @@
   line-height: 1.6;
 }
 
-.dark-mode {
-  color-scheme: dark;
-  --bg: #06131f;
-  --surface: rgba(18, 28, 42, 0.96);
-  --surface-strong: rgba(13, 22, 36, 0.96);
-  --surface-muted: rgba(16, 26, 44, 0.92);
-  --text: #f4f8ff;
-  --muted: #b8c6df;
-  --border: rgba(255, 255, 255, 0.08);
-  --primary: #29d069;
-  --primary-strong: #8bffab;
-  --danger: #ff7b7b;
-  --warning: #f7c15a;
-  --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-}
-
 * {
   box-sizing: border-box;
 }
@@ -58,10 +42,6 @@ textarea {
   max-width: 1180px;
   margin: 0 auto;
   padding: 24px;
-}
-
-body.dark-mode .app-shell {
-  background: transparent;
 }
 
 .hero {
@@ -90,24 +70,6 @@ body.dark-mode .app-shell {
   margin-bottom: 18px;
 }
 
-.theme-toggle {
-  width: 52px;
-  height: 52px;
-  border: none;
-  border-radius: 16px;
-  background: rgba(30, 164, 74, 0.12);
-  color: var(--primary-strong);
-  font-size: 1.15rem;
-  cursor: pointer;
-  transition: transform 0.18s ease, background-color 0.18s ease;
-}
-
-.theme-toggle:hover,
-.theme-toggle:focus-visible {
-  transform: translateY(-1px);
-  background: rgba(30, 164, 74, 0.20);
-  outline: none;
-}
 
 .hero h1 {
   margin: 0 0 12px;
