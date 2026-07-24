@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kiểm tra ngày Nhật từ Adobe/PDF</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <div class="hero-header-row">
+            <div>
+              <p class="eyebrow">DTP PLUS | Adobe / PDF</p>
+              <h1>Kiểm tra thứ Nhật từ dữ liệu copy Adobe/PDF</h1>
+            </div>
+            <button id="themeToggleButton" class="theme-toggle" type="button" aria-label="Chuyển sang chế độ tối">
+              🌙
+            </button>
+          </div>
+          <p class="hero-text">
+            Dán nội dung từ Adobe InDesign hoặc PDF để kiểm tra nhanh ngày và thứ trong lịch Nhật. Công cụ sẽ tự động xử lý nhiều lỗi thường gặp khi sao chép dữ liệu, giúp bạn phát hiện và sửa sai dễ dàng.
+          </p>
+        </div>
+      </header>
+
+      <main>
+        <section class="panel input-panel">
+          <div class="field-row">
+            <label for="yearSelect">Chọn năm</label>
+            <select id="yearSelect" aria-label="Chọn năm"></select>
+          </div>
+
+          <div class="field-row textarea-row">
+            <label for="inputText">Dữ liệu nguồn</label>
+            <textarea id="inputText" placeholder="Paste dữ liệu copy từ Adobe / PDF vào đây..."></textarea>
+          </div>
+
+          <div class="button-row">
+            <button id="checkButton" class="btn primary">Kiểm tra</button>
+            <button id="clearButton" class="btn secondary">Clear</button>
+            <button id="copyButton" class="btn tertiary">Copy kết quả</button>
+          </div>
+        </section>
+
+        <section class="panel summary-panel" aria-live="polite">
+          <h2 class="panel-title">Thống kê nhanh</h2>
+          <div class="summary-grid">
+            <div class="summary-card">
+              <span class="summary-label">Tổng số dòng</span>
+              <strong id="summaryTotalLines">0</strong>
+            </div>
+            <div class="summary-card">
+              <span class="summary-label">Tổng bản ghi</span>
+              <strong id="summaryTotalEntries">0</strong>
+            </div>
+            <div class="summary-card success-card">
+              <span class="summary-label">Đúng</span>
+              <strong id="summaryCorrect">0</strong>
+            </div>
+            <div class="summary-card error-card">
+              <span class="summary-label">Sai</span>
+              <strong id="summaryMismatch">0</strong>
+            </div>
+            <div class="summary-card warning-card">
+              <span class="summary-label">Không parse được</span>
+              <strong id="summaryParseErrors">0</strong>
+            </div>
+            <div class="summary-card warning-card">
+              <span class="summary-label">Ngày không hợp lệ</span>
+              <strong id="summaryInvalidDates">0</strong>
+            </div>
+            <div class="summary-card">
+              <span class="summary-label">Holiday</span>
+              <strong id="summaryHolidays">0</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel results-panel">
+          <h2 class="panel-title">Kết quả</h2>
+          <div class="table-wrapper">
+            <table id="resultTable">
+              <thead>
+                <tr>
+                  <th>Tháng</th>
+                  <th>Ngày</th>
+                  <th>Trong file</th>
+                  <th>Đúng</th>
+                  <th>Kết quả</th>
+                </tr>
+              </thead>
+              <tbody id="resultBody">
+                <tr>
+                  <td colspan="5" class="empty-state">Chưa có dữ liệu. Hãy chọn năm và dán dữ liệu rồi bấm Kiểm tra.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel error-panel-section">
+          <h2 class="panel-title">Lỗi & cảnh báo</h2>
+          <div id="errorPanel" class="error-panel">
+            <p class="empty-state">Không có lỗi. Chưa kiểm tra hoặc dữ liệu hợp lệ.</p>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <p>Made by anhthodev 🚀</p>
+      </footer>
+
+      <button id="scrollTopButton" class="scroll-top-button" type="button" aria-label="Quay về đầu trang">
+        ↑
+      </button>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
