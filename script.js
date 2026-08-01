@@ -231,7 +231,7 @@ function updateSelectedDaysDisplay() {
       const weekday = WEEKDAY_MAP[new Date(selectedYear, selectedMonth - 1, day).getDay()];
       if (holidayInfo) {
         pill.classList.add("holiday");
-        pill.textContent = `${day}日(祝)(${weekday})`;
+        pill.textContent = `${day}日(${weekday})(祝)`;
       } else {
         pill.textContent = `${day}日(${weekday})`;
       }
@@ -254,7 +254,7 @@ function updateSelectedDaysDisplay() {
     const weekday = WEEKDAY_MAP[new Date(selectedYear, selectedMonth - 1, day).getDay()];
     if (holidayInfo) {
       pill.classList.add("holiday");
-      pill.textContent = `${day}日(祝)(${weekday})`;
+      pill.textContent = `${day}日(${weekday})(祝)`;
     } else {
       pill.textContent = `${day}日(${weekday})`;
     }
