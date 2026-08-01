@@ -18,97 +18,48 @@
         <div class="hero-copy">
           <div class="hero-header-row">
             <div>
-              <p class="eyebrow">DTP PLUS | Adobe / PDF</p>
-              <h1>Kiểm tra thứ Nhật từ dữ liệu copy Adobe/PDF</h1>
+              <p class="eyebrow">DTP PLUS | Lịch Nhật</p>
+              <h1>Xem lịch Nhật theo năm và tháng</h1>
             </div>
           </div>
           <p class="hero-text">
-            Dán nội dung từ Adobe InDesign hoặc PDF để kiểm tra nhanh ngày và thứ trong lịch Nhật. Công cụ sẽ tự động xử lý nhiều lỗi thường gặp khi sao chép dữ liệu, giúp bạn phát hiện và sửa sai dễ dàng.
+            Chọn năm và tháng để hiển thị các nút ngày. Nhấn vào các con số để chọn; ngày đã chọn sẽ hiện bên dưới kèm thứ Nhật, và nếu là ngày lễ thì sẽ chỉ hiển thị chữ lễ.
           </p>
         </div>
       </header>
 
       <main>
         <section class="panel input-panel">
-          <div class="field-row">
-            <label for="yearSelect">Chọn năm</label>
-            <select id="yearSelect" aria-label="Chọn năm"></select>
+          <div class="field-row field-row--inline">
+            <div class="field-group">
+              <label for="yearSelect">Chọn năm</label>
+              <select id="yearSelect" aria-label="Chọn năm"></select>
+            </div>
+            <div class="field-group">
+              <label for="monthSelect">Chọn tháng</label>
+              <select id="monthSelect" aria-label="Chọn tháng"></select>
+            </div>
+          </div>
+          <div class="field-row field-row--inline field-row--controls">
+            <button id="viewAllButton" class="btn secondary" type="button">Xem tất cả ngày</button>
+            <button id="resetButton" class="btn tertiary" type="button">Reset</button>
           </div>
 
-          <div class="field-row textarea-row">
-            <label for="inputText">Dữ liệu nguồn</label>
-            <textarea id="inputText" placeholder="Paste dữ liệu copy từ Adobe / PDF vào đây..."></textarea>
-          </div>
-
-          <div class="button-row">
-            <button id="checkButton" class="btn primary">Kiểm tra</button>
-            <button id="clearButton" class="btn secondary">Clear</button>
-            <button id="copyButton" class="btn tertiary">Copy kết quả</button>
-          </div>
         </section>
 
-        <section class="panel summary-panel" aria-live="polite">
-          <h2 class="panel-title">Thống kê nhanh</h2>
-          <div class="summary-grid">
-            <div class="summary-card">
-              <span class="summary-label">Tổng số dòng</span>
-              <strong id="summaryTotalLines">0</strong>
-            </div>
-            <div class="summary-card">
-              <span class="summary-label">Tổng bản ghi</span>
-              <strong id="summaryTotalEntries">0</strong>
-            </div>
-            <div class="summary-card success-card">
-              <span class="summary-label">Đúng</span>
-              <strong id="summaryCorrect">0</strong>
-            </div>
-            <div class="summary-card error-card">
-              <span class="summary-label">Sai</span>
-              <strong id="summaryMismatch">0</strong>
-            </div>
-            <div class="summary-card warning-card">
-              <span class="summary-label">Không parse được</span>
-              <strong id="summaryParseErrors">0</strong>
-            </div>
-            <div class="summary-card warning-card">
-              <span class="summary-label">Ngày không hợp lệ</span>
-              <strong id="summaryInvalidDates">0</strong>
-            </div>
-            <div class="summary-card">
-              <span class="summary-label">Holiday</span>
-              <strong id="summaryHolidays">0</strong>
+        <section class="panel calendar-panel">
+          <h2 class="panel-title">Lịch ngày & thứ</h2>
+          <div class="calendar-grid" id="calendarGrid">
+            <p class="empty-state">Chọn năm và tháng để xem các ngày trong tháng.</p>
+          </div>
+          <div class="selected-days-panel">
+            <h3 class="panel-subtitle">Ngày đã chọn</h3>
+            <div class="selected-days-list" id="selectedDaysList">
+              <p class="empty-state">Chưa có ngày nào được chọn.</p>
             </div>
           </div>
         </section>
 
-        <section class="panel results-panel">
-          <h2 class="panel-title">Kết quả</h2>
-          <div class="table-wrapper">
-            <table id="resultTable">
-              <thead>
-                <tr>
-                  <th>Tháng</th>
-                  <th>Ngày</th>
-                  <th>Trong file</th>
-                  <th>Đúng</th>
-                  <th>Kết quả</th>
-                </tr>
-              </thead>
-              <tbody id="resultBody">
-                <tr>
-                  <td colspan="5" class="empty-state">Chưa có dữ liệu. Hãy chọn năm và dán dữ liệu rồi bấm Kiểm tra.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section class="panel error-panel-section">
-          <h2 class="panel-title">Lỗi & cảnh báo</h2>
-          <div id="errorPanel" class="error-panel">
-            <p class="empty-state">Không có lỗi. Chưa kiểm tra hoặc dữ liệu hợp lệ.</p>
-          </div>
-        </section>
       </main>
 
       <footer class="footer">
