@@ -14,6 +14,7 @@ const WEEKDAY_MAP = {
 };
 
 const selectionRows = [];
+const groupOrder = [];
 let currentSelection = new Set();
 let activeRowId = null;
 let currentActiveYear = null;
@@ -36,23 +37,63 @@ const selectedDaysInline = document.getElementById("selectedDaysInline");
 const selectedDaysPanel = document.querySelector(".selected-days-panel");
 
 function getGroupOrder() {
-  return Array.from(new Set(selectionRows.map((row) => row.groupId))).sort((a, b) => a - b);
+  if (!groupOrder.length && selectionRows.length) {
+    selectionRows.forEach((row) => {
+      if (!groupOrder.includes(row.groupId)) {
+        groupOrder.push(row.groupId);
+      }
+    });
+  }
+  return groupOrder.slice();
 }
 
 function getNextGroupId() {
-  const groupIds = getGroupOrder();
-  if (!groupIds.length) {
+  if (!groupOrder.length) {
     return 1;
   }
-  return Math.max(...groupIds) + 1;
+  return Math.max(...groupOrder) + 1;
 }
 
-function setRowGroup(rowId, groupId) {
+function addGroupOrder(groupId, insertAfterGroupId = null) {
+  if (groupOrder.includes(groupId)) {
+    return;
+  }
+  if (insertAfterGroupId === null || !groupOrder.includes(insertAfterGroupId)) {
+    groupOrder.push(groupId);
+    return;
+  }
+  const insertIndex = groupOrder.indexOf(insertAfterGroupId) + 1;
+  groupOrder.splice(insertIndex, 0, groupId);
+}
+
+function removeEmptyGroup(groupId) {
+  const groupHasRows = selectionRows.some((row) => row.groupId === groupId);
+  if (!groupHasRows) {
+    const index = groupOrder.indexOf(groupId);
+    if (index !== -1) {
+      groupOrder.splice(index, 1);
+    }
+  }
+}
+
+function cleanupGroupOrder() {
+  for (let i = groupOrder.length - 1; i >= 0; i -= 1) {
+    const groupId = groupOrder[i];
+    if (!selectionRows.some((row) => row.groupId === groupId)) {
+      groupOrder.splice(i, 1);
+    }
+  }
+}
+
+function setRowGroup(rowId, groupId, insertAfterGroupId = null) {
   const row = selectionRows.find((item) => item.id === rowId);
   if (!row) {
     return;
   }
+  const oldGroupId = row.groupId;
   row.groupId = groupId;
+  addGroupOrder(groupId, insertAfterGroupId ?? oldGroupId);
+  removeEmptyGroup(oldGroupId);
   renderCalendar();
   updateSelectedDaysDisplay();
 }
@@ -72,17 +113,15 @@ function changeRowGroup(rowId, direction) {
     if (currentIndex <= 0) {
       return;
     }
-    row.groupId = groupOrder[currentIndex - 1];
+    setRowGroup(row.id, groupOrder[currentIndex - 1]);
   } else {
-    if (currentIndex < groupOrder.length - 1) {
-      row.groupId = groupOrder[currentIndex + 1];
-    } else {
-      row.groupId = getNextGroupId();
+    const groupRows = selectionRows.filter((item) => item.groupId === row.groupId);
+    if (groupRows.length <= 1) {
+      return;
     }
+    const newGroupId = getNextGroupId();
+    setRowGroup(row.id, newGroupId, row.groupId);
   }
-
-  renderCalendar();
-  updateSelectedDaysDisplay();
 }
 
 function createMoveButton(row, direction, isInline = false) {
@@ -94,7 +133,11 @@ function createMoveButton(row, direction, isInline = false) {
 
   const groupOrder = getGroupOrder();
   const currentGroupIndex = groupOrder.indexOf(row.groupId);
-  const isDisabled = direction === "up" ? currentGroupIndex <= 0 : false;
+  const groupRows = selectionRows.filter((item) => item.groupId === row.groupId);
+  const isDisabled =
+    direction === "up"
+      ? currentGroupIndex <= 0
+      : groupRows.length <= 1;
   if (isDisabled) {
     button.disabled = true;
   }
@@ -303,6 +346,7 @@ function toggleSelectedDay(day) {
     const newRowId = nextRowId++;
     activeRowId = newRowId;
     selectionRows.push({ id: newRowId, year: currentActiveYear, month: currentActiveMonth, days: [], groupId: newRowId });
+    addGroupOrder(newRowId);
   }
 
   const row = selectionRows.find((item) => item.id === activeRowId);
@@ -319,10 +363,12 @@ function toggleSelectedDay(day) {
   }
 
   if (!row.days.length) {
+    const oldGroupId = row.groupId;
     const removeIndex = selectionRows.findIndex((item) => item.id === activeRowId);
     if (removeIndex !== -1) {
       selectionRows.splice(removeIndex, 1);
     }
+    removeEmptyGroup(oldGroupId);
     activeRowId = null;
     currentSelection.clear();
   } else {
@@ -365,6 +411,7 @@ function toggleViewAllMode() {
       const newRowId = nextRowId++;
       activeRowId = newRowId;
       selectionRows.push({ id: newRowId, year: currentActiveYear, month: currentActiveMonth, days: allDays, groupId: newRowId });
+      addGroupOrder(newRowId);
       currentSelection = new Set(allDays.map((day) => getDateKey(currentActiveYear, currentActiveMonth, day)));
     }
   } else {
@@ -414,7 +461,9 @@ function resetSelection() {
 
   for (let i = selectionRows.length - 1; i >= 0; i -= 1) {
     if (selectionRows[i].year === selectedYear && selectionRows[i].month === selectedMonth) {
+      const oldGroupId = selectionRows[i].groupId;
       selectionRows.splice(i, 1);
+      removeEmptyGroup(oldGroupId);
     }
   }
 
@@ -439,6 +488,7 @@ function clearAllSelection() {
     return;
   }
   selectionRows.length = 0;
+  groupOrder.length = 0;
   activeRowId = null;
   currentSelection.clear();
   renderCalendar();
@@ -448,6 +498,7 @@ function clearAllSelection() {
 function saveState() {
   const payload = {
     selectionRows,
+    groupOrder,
     layoutMode,
     hideActions,
     hideMoveControls,
@@ -487,6 +538,22 @@ function loadState() {
         }
       });
     }
+    if (Array.isArray(parsed.groupOrder) && parsed.groupOrder.every((groupId) => typeof groupId === "number")) {
+      groupOrder.length = 0;
+      parsed.groupOrder.forEach((groupId) => {
+        if (!groupOrder.includes(groupId)) {
+          groupOrder.push(groupId);
+        }
+      });
+    } else {
+      groupOrder.length = 0;
+      selectionRows.forEach((row) => {
+        if (!groupOrder.includes(row.groupId)) {
+          groupOrder.push(row.groupId);
+        }
+      });
+    }
+    cleanupGroupOrder();
     if (parsed.layoutMode === "inline" || parsed.layoutMode === "table") {
       layoutMode = parsed.layoutMode;
     }
@@ -598,7 +665,9 @@ function updateSelectedDaysDisplay() {
           }
           const rowIndex = selectionRows.findIndex((item) => item.id === row.id);
           if (rowIndex !== -1) {
+            const oldGroupId = selectionRows[rowIndex].groupId;
             selectionRows.splice(rowIndex, 1);
+            removeEmptyGroup(oldGroupId);
           }
           if (activeRowId === row.id) {
             activeRowId = null;
@@ -659,7 +728,9 @@ function updateSelectedDaysDisplay() {
       }
       const rowIndex = selectionRows.findIndex((item) => item.id === row.id);
       if (rowIndex !== -1) {
+        const oldGroupId = selectionRows[rowIndex].groupId;
         selectionRows.splice(rowIndex, 1);
+        removeEmptyGroup(oldGroupId);
       }
       if (activeRowId === row.id) {
         activeRowId = null;
