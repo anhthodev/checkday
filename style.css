@@ -623,6 +623,10 @@ tbody tr.no-weekday {
   width: 100%;
   border-bottom: 1px solid var(--border);
   background: transparent;
+<<<<<<< HEAD
+=======
+  padding: 8px 12px;
+>>>>>>> ad1da8d (abc)
 }
 
 .month-line-group:last-child {
