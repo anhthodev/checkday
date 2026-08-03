@@ -55,9 +55,12 @@
           <div class="selected-days-panel">
             <div class="selected-days-panel__header">
               <h3 class="panel-subtitle">Ngày đã chọn</h3>
-              <button id="clearAllButton" class="btn tertiary" type="button">Xóa tất cả</button>
+              <div class="selected-days-panel__actions">
+                <button id="layoutToggleButton" class="btn secondary" type="button">Dạng dòng</button>
+                <button id="clearAllButton" class="btn tertiary" type="button">Xóa tất cả</button>
+              </div>
             </div>
-            <div class="selected-days-table-wrapper">
+            <div class="selected-days-table-wrapper" id="selectedDaysTableWrapper">
               <table class="selected-days-table" id="selectedDaysTable">
                 <thead>
                   <tr>
@@ -68,11 +71,12 @@
                 </thead>
                 <tbody id="selectedDaysTableBody">
                   <tr>
-                    <td colspan="4" class="empty-state">Chưa có ngày nào được chọn.</td>
+                    <td colspan="3" class="empty-state">Chưa có ngày nào được chọn.</td>
                   </tr>
                 </tbody>
               </table>
             </div>
+            <div class="selected-days-inline hidden" id="selectedDaysInline"></div>
           </div>
         </section>
 

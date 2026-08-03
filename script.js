@@ -20,10 +20,14 @@ let currentActiveYear = null;
 let currentActiveMonth = null;
 let nextRowId = 1;
 let viewAllMode = false;
+let layoutMode = "table";
 const viewAllButton = document.getElementById("viewAllButton");
 const resetButton = document.getElementById("resetButton");
 const clearAllButton = document.getElementById("clearAllButton");
+const layoutToggleButton = document.getElementById("layoutToggleButton");
 const selectedDaysTableBody = document.getElementById("selectedDaysTableBody");
+const selectedDaysTableWrapper = document.getElementById("selectedDaysTableWrapper");
+const selectedDaysInline = document.getElementById("selectedDaysInline");
 
 function getDateKey(year, month, day) {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -43,6 +47,7 @@ function initializeApp() {
   viewAllButton.addEventListener("click", toggleViewAllMode);
   resetButton.addEventListener("click", resetSelection);
   clearAllButton.addEventListener("click", clearAllSelection);
+  layoutToggleButton.addEventListener("click", toggleLayoutMode);
   yearSelect.addEventListener("change", handleMonthChange);
   monthSelect.addEventListener("change", handleMonthChange);
   window.addEventListener("scroll", handleScroll);
@@ -293,6 +298,13 @@ function toggleViewAllMode() {
   updateSelectedDaysDisplay();
 }
 
+function toggleLayoutMode() {
+  layoutMode = layoutMode === "table" ? "inline" : "table";
+  layoutToggleButton.textContent = layoutMode === "table" ? "Dạng dòng" : "Dạng bảng";
+  renderCalendar();
+  updateSelectedDaysDisplay();
+}
+
 function resetSelection() {
   const selectedYear = Number(yearSelect.value);
   const selectedMonth = Number(monthSelect.value);
@@ -342,25 +354,102 @@ function clearAllSelection() {
 
 function updateSelectedDaysDisplay() {
   selectedDaysTableBody.innerHTML = "";
-
-  const selectedYear = Number(yearSelect.value);
-  const selectedMonth = Number(monthSelect.value);
+  selectedDaysInline.innerHTML = "";
 
   if (!selectionRows.length) {
-    const emptyRow = document.createElement("tr");
-    const emptyCell = document.createElement("td");
-    emptyCell.colSpan = 3;
-    emptyCell.className = "empty-state";
-    emptyCell.textContent = "Chưa có ngày nào được chọn.";
-    emptyRow.appendChild(emptyCell);
-    selectedDaysTableBody.appendChild(emptyRow);
+    selectedDaysTableWrapper.classList.toggle("hidden", layoutMode === "inline");
+    selectedDaysInline.classList.toggle("hidden", layoutMode === "table");
+
+    if (layoutMode === "table") {
+      const emptyRow = document.createElement("tr");
+      const emptyCell = document.createElement("td");
+      emptyCell.colSpan = 3;
+      emptyCell.className = "empty-state";
+      emptyCell.textContent = "Chưa có ngày nào được chọn.";
+      emptyRow.appendChild(emptyCell);
+      selectedDaysTableBody.appendChild(emptyRow);
+    } else {
+      const emptyMessage = document.createElement("div");
+      emptyMessage.className = "empty-state inline-empty";
+      emptyMessage.textContent = "Chưa có ngày nào được chọn.";
+      selectedDaysInline.appendChild(emptyMessage);
+    }
+
     clearAllButton.disabled = true;
     return;
   }
 
   clearAllButton.disabled = false;
+  selectedDaysTableWrapper.classList.toggle("hidden", layoutMode === "inline");
+  selectedDaysInline.classList.toggle("hidden", layoutMode === "table");
 
   const showYear = new Set(selectionRows.map((row) => row.year)).size > 1;
+
+  if (layoutMode === "inline") {
+    const inlineContainer = document.createElement("div");
+    inlineContainer.className = "selected-months-inline";
+
+    selectionRows.forEach((row) => {
+      const monthGroup = document.createElement("div");
+      monthGroup.className = "selected-month-group";
+
+      const monthLabel = document.createElement("span");
+      monthLabel.className = "inline-month-label";
+      monthLabel.textContent = showYear ? `${row.year}年${row.month}月` : `${row.month}月`;
+      monthGroup.appendChild(monthLabel);
+
+      row.days.forEach((day) => {
+        const date = new Date(row.year, row.month - 1, day);
+        const weekday = WEEKDAY_MAP[date.getDay()];
+        const holidayKey = `${row.month}-${day}`;
+        const holidayInfo = getJapaneseHolidays(row.year).get(holidayKey);
+        const dayTag = document.createElement("span");
+        dayTag.className = "inline-day-tag";
+        dayTag.textContent = holidayInfo ? `${day}(${weekday})(祝)` : `${day}(${weekday})`;
+        monthGroup.appendChild(dayTag);
+      });
+
+      const actionGroup = document.createElement("div");
+      actionGroup.className = "inline-action-group";
+
+      const editButton = document.createElement("button");
+      editButton.type = "button";
+      editButton.className = "inline-action-button";
+      editButton.textContent = "Sửa";
+      editButton.addEventListener("click", () => {
+        startEditingRow(row.id);
+      });
+      actionGroup.appendChild(editButton);
+
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.className = "inline-action-button";
+      deleteButton.textContent = "Xóa";
+      deleteButton.addEventListener("click", () => {
+        const confirmed = window.confirm("Bạn có chắc muốn xóa mục này không?");
+        if (!confirmed) {
+          return;
+        }
+        const rowIndex = selectionRows.findIndex((item) => item.id === row.id);
+        if (rowIndex !== -1) {
+          selectionRows.splice(rowIndex, 1);
+        }
+        if (activeRowId === row.id) {
+          activeRowId = null;
+          currentSelection.clear();
+        }
+        renderCalendar();
+        updateSelectedDaysDisplay();
+      });
+      actionGroup.appendChild(deleteButton);
+
+      monthGroup.appendChild(actionGroup);
+      inlineContainer.appendChild(monthGroup);
+    });
+
+    selectedDaysInline.appendChild(inlineContainer);
+    return;
+  }
 
   selectionRows.forEach((row) => {
     const rowElement = document.createElement("tr");

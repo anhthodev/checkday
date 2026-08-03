@@ -566,6 +566,80 @@ tbody tr.no-weekday {
   align-items: center;
 }
 
+.hidden {
+  display: none !important;
+}
+
+.selected-days-inline {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 16px 18px;
+}
+
+.selected-days-inline .inline-empty {
+  color: #5c6d7f;
+  text-align: center;
+  padding: 18px 0;
+}
+
+.selected-months-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 20px;
+  align-items: center;
+}
+
+.selected-month-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid rgba(28, 41, 56, 0.08);
+  border-radius: 16px;
+  background: #fafcfe;
+}
+
+.inline-month-label {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.inline-day-tag {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(30, 164, 74, 0.08);
+  color: var(--text);
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.inline-action-group {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.inline-action-button {
+  padding: 6px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(28, 41, 56, 0.08);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.inline-action-button:hover,
+.inline-action-button:focus-visible {
+  background: rgba(15, 34, 50, 0.06);
+  transform: translateY(-1px);
+}
+
 .selected-days-table .empty-state {
   text-align: center;
   padding: 24px 0;
