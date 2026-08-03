@@ -21,13 +21,16 @@ let currentActiveMonth = null;
 let nextRowId = 1;
 let viewAllMode = false;
 let layoutMode = "table";
+let hideActions = false;
 const viewAllButton = document.getElementById("viewAllButton");
 const resetButton = document.getElementById("resetButton");
 const clearAllButton = document.getElementById("clearAllButton");
 const layoutToggleButton = document.getElementById("layoutToggleButton");
+const toggleActionsButton = document.getElementById("toggleActionsButton");
 const selectedDaysTableBody = document.getElementById("selectedDaysTableBody");
 const selectedDaysTableWrapper = document.getElementById("selectedDaysTableWrapper");
 const selectedDaysInline = document.getElementById("selectedDaysInline");
+const selectedDaysPanel = document.querySelector(".selected-days-panel");
 
 function getGroupOrder() {
   return Array.from(new Set(selectionRows.map((row) => row.groupId))).sort((a, b) => a - b);
@@ -107,6 +110,7 @@ function initializeApp() {
   resetButton.addEventListener("click", resetSelection);
   clearAllButton.addEventListener("click", clearAllSelection);
   layoutToggleButton.addEventListener("click", toggleLayoutMode);
+  toggleActionsButton.addEventListener("click", toggleActionsVisibility);
   yearSelect.addEventListener("change", handleMonthChange);
   monthSelect.addEventListener("change", handleMonthChange);
   window.addEventListener("scroll", handleScroll);
@@ -366,6 +370,12 @@ function toggleLayoutMode() {
   updateSelectedDaysDisplay();
 }
 
+function toggleActionsVisibility() {
+  hideActions = !hideActions;
+  selectedDaysPanel.classList.toggle("hide-actions", hideActions);
+  toggleActionsButton.textContent = hideActions ? "Hiện hành động" : "Ẩn hành động";
+}
+
 function resetSelection() {
   const selectedYear = Number(yearSelect.value);
   const selectedMonth = Number(monthSelect.value);
@@ -443,6 +453,7 @@ function updateSelectedDaysDisplay() {
   clearAllButton.disabled = false;
   selectedDaysTableWrapper.classList.toggle("hidden", layoutMode === "inline");
   selectedDaysInline.classList.toggle("hidden", layoutMode === "table");
+  selectedDaysPanel.classList.toggle("hide-actions", hideActions);
 
   const showYear = new Set(selectionRows.map((row) => row.year)).size > 1;
 

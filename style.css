@@ -494,6 +494,20 @@ tbody tr.no-weekday {
   margin-bottom: 14px;
 }
 
+.selected-days-panel__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.selected-days-panel.hide-actions th:nth-child(3),
+.selected-days-panel.hide-actions td:nth-child(3),
+.selected-days-panel.hide-actions .inline-action-group,
+.selected-days-panel.hide-actions .group-select {
+  display: none !important;
+}
+
 .panel-subtitle {
   margin: 0;
   font-size: 1rem;
