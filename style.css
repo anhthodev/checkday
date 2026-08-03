@@ -598,7 +598,7 @@ tbody tr.no-weekday {
   background: transparent;
   border: 1px solid var(--border);
   border-radius: 20px;
-  padding: 16px 22px;
+  padding: 12px 18px;
   overflow-x: auto;
 }
 
@@ -617,12 +617,12 @@ tbody tr.no-weekday {
 .month-line-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
   width: 100%;
   border-bottom: 1px solid var(--border);
   background: transparent;
-  padding: 12px 14px;
+  padding: 10px 14px;
 }
 
 .month-line-group:last-child {
@@ -634,7 +634,7 @@ tbody tr.no-weekday {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   background: transparent;
   flex-shrink: 0;
 }
