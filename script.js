@@ -631,9 +631,7 @@ function updateSelectedDaysDisplay() {
           const holidayKey = `${row.month}-${day}`;
           const holidayInfo = getJapaneseHolidays(row.year).get(holidayKey);
           if (index > 0) {
-            const separator = document.createElement("span");
-            separator.className = "inline-day-separator";
-            separator.textContent = "·";
+            const separator = document.createTextNode(" • ");
             monthGroup.appendChild(separator);
           }
           const dayTag = document.createElement("span");
