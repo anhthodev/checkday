@@ -654,7 +654,8 @@ tbody tr.no-weekday {
   justify-content: center;
   color: var(--muted);
   font-weight: 700;
-  margin: 0 8px;
+  margin: 0 4px;
+  font-size: 0.9rem;
   user-select: none;
 }
 

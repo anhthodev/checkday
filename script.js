@@ -633,7 +633,7 @@ function updateSelectedDaysDisplay() {
           if (index > 0) {
             const separator = document.createElement("span");
             separator.className = "inline-day-separator";
-            separator.textContent = "●";
+            separator.textContent = "·";
             monthGroup.appendChild(separator);
           }
           const dayTag = document.createElement("span");
@@ -710,7 +710,7 @@ function updateSelectedDaysDisplay() {
       const holidayInfo = getJapaneseHolidays(row.year).get(holidayKey);
       return holidayInfo ? `${day}(${weekday})(祝)` : `${day}(${weekday})`;
     });
-    dayCell.textContent = dayStrings.join("  ●  ");
+    dayCell.textContent = dayStrings.join(" · ");
     rowElement.appendChild(dayCell);
 
     const actionCell = document.createElement("td");
