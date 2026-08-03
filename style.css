@@ -516,12 +516,13 @@ tbody tr.no-weekday {
 
 .selected-days-table-wrapper {
   overflow-x: auto;
+  padding: 0 16px;
 }
 
 .selected-days-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 540px;
+  min-width: 560px;
   table-layout: fixed;
 }
 
@@ -588,7 +589,7 @@ tbody tr.no-weekday {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 20px;
-  padding: 16px 18px;
+  padding: 16px 22px;
   overflow-x: auto;
 }
 
