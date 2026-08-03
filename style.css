@@ -611,26 +611,31 @@ tbody tr.no-weekday {
 .selected-months-inline {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+ gap: 12px;
 }
 
 .month-line-group {
   display: flex;
-  flex-wrap: nowrap;
+ flex-wrap: wrap;
  gap: 10px;
   align-items: flex-start;
+ width: 100%;
+ border: 1px solid var(--border);
+ border-radius: 18px;
+ background: var(--surface);
+ padding: 12px 14px;
 }
- 
+
 .selected-month-group {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 12px;
-  border: 1px solid rgba(28, 41, 56, 0.08);
-  border-radius: 16px;
-  background: #fafcfe;
-  flex-shrink: 0;
+ display: flex;
+ flex-wrap: wrap;
+ align-items: center;
+ gap: 6px;
+ padding: 10px 12px;
+ border: 1px solid rgba(28, 41, 56, 0.08);
+ border-radius: 16px;
+ background: #f7fbff;
+ flex-shrink: 0;
 }
 
 .inline-month-label {
