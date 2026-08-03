@@ -23,6 +23,7 @@ let viewAllMode = false;
 let layoutMode = "table";
 let hideActions = false;
 let hideMoveControls = false;
+const STORAGE_KEY = "japaneseCalendarSelection";
 const viewAllButton = document.getElementById("viewAllButton");
 const resetButton = document.getElementById("resetButton");
 const clearAllButton = document.getElementById("clearAllButton");
@@ -115,6 +116,7 @@ function parseDateKey(key) {
 function initializeApp() {
   populateYearOptions();
   populateMonthOptions();
+  loadState();
   currentActiveYear = Number(yearSelect.value);
   currentActiveMonth = Number(monthSelect.value);
   viewAllButton.addEventListener("click", toggleViewAllMode);
@@ -386,12 +388,14 @@ function toggleActionsVisibility() {
   hideActions = !hideActions;
   selectedDaysPanel.classList.toggle("hide-actions", hideActions);
   toggleActionsButton.textContent = hideActions ? "Hiện sửa/xóa" : "Ẩn sửa/xóa";
+  saveState();
 }
 
 function toggleMoveControlsVisibility() {
   hideMoveControls = !hideMoveControls;
   selectedDaysPanel.classList.toggle("hide-move-controls", hideMoveControls);
   toggleMoveButtonsButton.textContent = hideMoveControls ? "Hiện lên/xuống" : "Ẩn lên/xuống";
+  saveState();
 }
 
 function resetSelection() {
@@ -441,6 +445,64 @@ function clearAllSelection() {
   updateSelectedDaysDisplay();
 }
 
+function saveState() {
+  const payload = {
+    selectionRows,
+    layoutMode,
+    hideActions,
+    hideMoveControls,
+  };
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch (error) {
+    // ignore localStorage errors
+  }
+}
+
+function loadState() {
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      return;
+    }
+    const parsed = JSON.parse(stored);
+    if (Array.isArray(parsed.selectionRows)) {
+      selectionRows.length = 0;
+      parsed.selectionRows.forEach((row) => {
+        if (
+          typeof row.id === "number" &&
+          typeof row.year === "number" &&
+          typeof row.month === "number" &&
+          Array.isArray(row.days) &&
+          row.days.every((day) => typeof day === "number") &&
+          typeof row.groupId === "number"
+        ) {
+          selectionRows.push({
+            id: row.id,
+            year: row.year,
+            month: row.month,
+            days: [...row.days],
+            groupId: row.groupId,
+          });
+        }
+      });
+    }
+    if (parsed.layoutMode === "inline" || parsed.layoutMode === "table") {
+      layoutMode = parsed.layoutMode;
+    }
+    hideActions = Boolean(parsed.hideActions);
+    hideMoveControls = Boolean(parsed.hideMoveControls);
+    nextRowId = selectionRows.reduce((maxId, row) => Math.max(maxId, row.id), 0) + 1;
+    selectedDaysPanel.classList.toggle("hide-actions", hideActions);
+    selectedDaysPanel.classList.toggle("hide-move-controls", hideMoveControls);
+    layoutToggleButton.textContent = layoutMode === "table" ? "Dạng dòng" : "Dạng bảng";
+    toggleActionsButton.textContent = hideActions ? "Hiện sửa/xóa" : "Ẩn sửa/xóa";
+    toggleMoveButtonsButton.textContent = hideMoveControls ? "Hiện lên/xuống" : "Ẩn lên/xuống";
+  } catch (error) {
+    // ignore parse errors
+  }
+}
+
 function updateSelectedDaysDisplay() {
   selectedDaysTableBody.innerHTML = "";
   selectedDaysInline.innerHTML = "";
@@ -465,6 +527,7 @@ function updateSelectedDaysDisplay() {
     }
 
     clearAllButton.disabled = true;
+    saveState();
     return;
   }
 
@@ -472,6 +535,7 @@ function updateSelectedDaysDisplay() {
   selectedDaysTableWrapper.classList.toggle("hidden", layoutMode === "inline");
   selectedDaysInline.classList.toggle("hidden", layoutMode === "table");
   selectedDaysPanel.classList.toggle("hide-actions", hideActions);
+  toggleMoveButtonsButton.disabled = layoutMode === "table";
 
   const showYear = new Set(selectionRows.map((row) => row.year)).size > 1;
 
@@ -575,12 +639,6 @@ function updateSelectedDaysDisplay() {
     rowElement.appendChild(dayCell);
 
     const actionCell = document.createElement("td");
-    const moveUpButton = createMoveButton(row, "up");
-    actionCell.appendChild(moveUpButton);
-
-    const moveDownButton = createMoveButton(row, "down");
-    actionCell.appendChild(moveDownButton);
-
     const editButton = document.createElement("button");
     editButton.type = "button";
     editButton.className = "action-button edit-delete";
@@ -615,6 +673,7 @@ function updateSelectedDaysDisplay() {
 
     selectedDaysTableBody.appendChild(rowElement);
   });
+  saveState();
 }
 
 function handleScroll() {
