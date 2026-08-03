@@ -575,6 +575,7 @@ tbody tr.no-weekday {
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 16px 18px;
+  overflow-x: auto;
 }
 
 .selected-days-inline .inline-empty {
@@ -585,9 +586,10 @@ tbody tr.no-weekday {
 
 .selected-months-inline {
   display: flex;
-  flex-wrap: wrap;
-  gap: 14px 20px;
-  align-items: center;
+  flex-wrap: nowrap;
+  gap: 14px 16px;
+  align-items: flex-start;
+  min-width: max-content;
 }
 
 .selected-month-group {
@@ -599,6 +601,7 @@ tbody tr.no-weekday {
   border: 1px solid rgba(28, 41, 56, 0.08);
   border-radius: 16px;
   background: #fafcfe;
+  flex-shrink: 0;
 }
 
 .inline-month-label {
@@ -608,7 +611,7 @@ tbody tr.no-weekday {
 
 .inline-day-tag {
   display: inline-flex;
-  padding: 6px 10px;
+  padding: 5px 8px;
   border-radius: 999px;
   background: rgba(30, 164, 74, 0.08);
   color: var(--text);
@@ -620,7 +623,6 @@ tbody tr.no-weekday {
   display: flex;
   gap: 10px;
   margin-left: auto;
-  flex-wrap: wrap;
   align-items: center;
 }
 
