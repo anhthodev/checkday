@@ -41,7 +41,7 @@
             </div>
           </div>
           <div class="field-row field-row--inline field-row--controls">
-            <button id="viewAllButton" class="btn secondary" type="button">Xem tất cả ngày</button>
+            <button id="viewAllButton" class="btn secondary" type="button">Chế độ chọn tất cả ngày</button>
             <button id="resetButton" class="btn tertiary" type="button">Reset</button>
           </div>
 
@@ -53,9 +53,25 @@
             <p class="empty-state">Chọn năm và tháng để xem các ngày trong tháng.</p>
           </div>
           <div class="selected-days-panel">
-            <h3 class="panel-subtitle">Ngày đã chọn</h3>
-            <div class="selected-days-list" id="selectedDaysList">
-              <p class="empty-state">Chưa có ngày nào được chọn.</p>
+            <div class="selected-days-panel__header">
+              <h3 class="panel-subtitle">Ngày đã chọn</h3>
+              <button id="clearAllButton" class="btn tertiary" type="button">Xóa tất cả</button>
+            </div>
+            <div class="selected-days-table-wrapper">
+              <table class="selected-days-table" id="selectedDaysTable">
+                <thead>
+                  <tr>
+                      <th>Tháng</th>
+                      <th>Ngày</th>
+                      <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="selectedDaysTableBody">
+                  <tr>
+                    <td colspan="4" class="empty-state">Chưa có ngày nào được chọn.</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </section>
