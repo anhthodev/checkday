@@ -501,10 +501,11 @@ tbody tr.no-weekday {
   justify-content: flex-end;
 }
 
-.selected-days-panel.hide-actions th:nth-child(3),
-.selected-days-panel.hide-actions td:nth-child(3),
-.selected-days-panel.hide-actions .inline-action-group,
-.selected-days-panel.hide-actions .group-select {
+.selected-days-panel.hide-actions .edit-delete {
+  display: none !important;
+}
+
+.selected-days-panel.hide-move-controls .move-control {
   display: none !important;
 }
 

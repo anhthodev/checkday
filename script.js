@@ -22,11 +22,13 @@ let nextRowId = 1;
 let viewAllMode = false;
 let layoutMode = "table";
 let hideActions = false;
+let hideMoveControls = false;
 const viewAllButton = document.getElementById("viewAllButton");
 const resetButton = document.getElementById("resetButton");
 const clearAllButton = document.getElementById("clearAllButton");
 const layoutToggleButton = document.getElementById("layoutToggleButton");
 const toggleActionsButton = document.getElementById("toggleActionsButton");
+const toggleMoveButtonsButton = document.getElementById("toggleMoveButtonsButton");
 const selectedDaysTableBody = document.getElementById("selectedDaysTableBody");
 const selectedDaysTableWrapper = document.getElementById("selectedDaysTableWrapper");
 const selectedDaysInline = document.getElementById("selectedDaysInline");
@@ -85,7 +87,7 @@ function changeRowGroup(rowId, direction) {
 function createMoveButton(row, direction, isInline = false) {
   const button = document.createElement("button");
   button.type = "button";
-  button.className = isInline ? "inline-action-button" : "action-button";
+  button.className = isInline ? "inline-action-button move-control" : "action-button move-control";
   button.textContent = direction === "up" ? "↑" : "↓";
   button.title = direction === "up" ? "Di chuyển lên nhóm trước" : "Di chuyển xuống nhóm sau";
 
@@ -120,6 +122,7 @@ function initializeApp() {
   clearAllButton.addEventListener("click", clearAllSelection);
   layoutToggleButton.addEventListener("click", toggleLayoutMode);
   toggleActionsButton.addEventListener("click", toggleActionsVisibility);
+  toggleMoveButtonsButton.addEventListener("click", toggleMoveControlsVisibility);
   yearSelect.addEventListener("change", handleMonthChange);
   monthSelect.addEventListener("change", handleMonthChange);
   window.addEventListener("scroll", handleScroll);
@@ -382,7 +385,13 @@ function toggleLayoutMode() {
 function toggleActionsVisibility() {
   hideActions = !hideActions;
   selectedDaysPanel.classList.toggle("hide-actions", hideActions);
-  toggleActionsButton.textContent = hideActions ? "Hiện hành động" : "Ẩn hành động";
+  toggleActionsButton.textContent = hideActions ? "Hiện sửa/xóa" : "Ẩn sửa/xóa";
+}
+
+function toggleMoveControlsVisibility() {
+  hideMoveControls = !hideMoveControls;
+  selectedDaysPanel.classList.toggle("hide-move-controls", hideMoveControls);
+  toggleMoveButtonsButton.textContent = hideMoveControls ? "Hiện lên/xuống" : "Ẩn lên/xuống";
 }
 
 function resetSelection() {
@@ -507,16 +516,16 @@ function updateSelectedDaysDisplay() {
 
         const editButton = document.createElement("button");
         editButton.type = "button";
-        editButton.className = "inline-action-button";
+        editButton.className = "inline-action-button edit-delete";
         editButton.textContent = "Sửa";
         editButton.addEventListener("click", () => {
           startEditingRow(row.id);
         });
         actionGroup.appendChild(editButton);
-
+ 
         const deleteButton = document.createElement("button");
         deleteButton.type = "button";
-        deleteButton.className = "inline-action-button";
+        deleteButton.className = "inline-action-button edit-delete";
         deleteButton.textContent = "Xóa";
         deleteButton.addEventListener("click", () => {
           const confirmed = window.confirm("Bạn có chắc muốn xóa mục này không?");
@@ -574,7 +583,7 @@ function updateSelectedDaysDisplay() {
 
     const editButton = document.createElement("button");
     editButton.type = "button";
-    editButton.className = "action-button";
+    editButton.className = "action-button edit-delete";
     editButton.textContent = "Sửa";
     editButton.addEventListener("click", () => {
       startEditingRow(row.id);
@@ -583,7 +592,7 @@ function updateSelectedDaysDisplay() {
 
     const deleteButton = document.createElement("button");
     deleteButton.type = "button";
-    deleteButton.className = "action-button";
+    deleteButton.className = "action-button edit-delete";
     deleteButton.textContent = "Xóa";
     deleteButton.addEventListener("click", () => {
       const confirmed = window.confirm("Bạn có chắc muốn xóa mục này không?");
