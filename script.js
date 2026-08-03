@@ -710,7 +710,7 @@ function updateSelectedDaysDisplay() {
       const holidayInfo = getJapaneseHolidays(row.year).get(holidayKey);
       return holidayInfo ? `${day}(${weekday})(祝)` : `${day}(${weekday})`;
     });
-    dayCell.textContent = dayStrings.join(" · ");
+    dayCell.textContent = dayStrings.join(" • ");
     rowElement.appendChild(dayCell);
 
     const actionCell = document.createElement("td");
