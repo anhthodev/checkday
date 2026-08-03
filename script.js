@@ -1,7 +1,6 @@
 const yearSelect = document.getElementById("yearSelect");
 const monthSelect = document.getElementById("monthSelect");
 const calendarGrid = document.getElementById("calendarGrid");
-const selectedDaysList = document.getElementById("selectedDaysList");
 const scrollTopButton = document.getElementById("scrollTopButton");
 
 const WEEKDAY_MAP = {
@@ -14,16 +13,36 @@ const WEEKDAY_MAP = {
   6: "土",
 };
 
-const selectedDays = new Set();
+const selectionRows = [];
+let currentSelection = new Set();
+let activeRowId = null;
+let currentActiveYear = null;
+let currentActiveMonth = null;
+let nextRowId = 1;
 let viewAllMode = false;
 const viewAllButton = document.getElementById("viewAllButton");
 const resetButton = document.getElementById("resetButton");
+const clearAllButton = document.getElementById("clearAllButton");
+const selectedDaysTableBody = document.getElementById("selectedDaysTableBody");
+
+function getDateKey(year, month, day) {
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function parseDateKey(key) {
+  const [year, month, day] = key.split("-").map(Number);
+  return { year, month, day };
+}
+
 
 function initializeApp() {
   populateYearOptions();
   populateMonthOptions();
+  currentActiveYear = Number(yearSelect.value);
+  currentActiveMonth = Number(monthSelect.value);
   viewAllButton.addEventListener("click", toggleViewAllMode);
   resetButton.addEventListener("click", resetSelection);
+  clearAllButton.addEventListener("click", clearAllSelection);
   yearSelect.addEventListener("change", handleMonthChange);
   monthSelect.addEventListener("change", handleMonthChange);
   window.addEventListener("scroll", handleScroll);
@@ -82,18 +101,23 @@ function renderCalendar() {
     if (holidayInfo) {
       button.classList.add("holiday");
     }
+    const dateKey = getDateKey(selectedYear, selectedMonth, day);
     if (viewAllMode) {
-      button.classList.add("view-all");
-      button.disabled = true;
-      button.setAttribute("aria-pressed", "false");
-    } else {
-      if (selectedDays.has(day)) {
+      if (currentSelection.has(dateKey)) {
         button.classList.add("selected");
         button.setAttribute("aria-pressed", "true");
       } else {
         button.setAttribute("aria-pressed", "false");
       }
-      button.addEventListener("click", () => toggleSelectedDay(day, holidayInfo));
+      button.addEventListener("click", () => toggleSelectedDay(day));
+    } else {
+      if (currentSelection.has(dateKey)) {
+        button.classList.add("selected");
+        button.setAttribute("aria-pressed", "true");
+      } else {
+        button.setAttribute("aria-pressed", "false");
+      }
+      button.addEventListener("click", () => toggleSelectedDay(day));
     }
     calendarGrid.appendChild(button);
   }
@@ -175,20 +199,73 @@ function getJapaneseHolidays(year) {
 }
 
 function handleMonthChange() {
-  selectedDays.clear();
+  currentActiveYear = Number(yearSelect.value);
+  currentActiveMonth = Number(monthSelect.value);
+  activeRowId = null;
+  currentSelection.clear();
   viewAllMode = false;
   viewAllButton.classList.remove("active");
-  viewAllButton.textContent = "Xem tất cả ngày";
+  viewAllButton.textContent = "Chế độ chọn tất cả ngày";
   renderCalendar();
   updateSelectedDaysDisplay();
 }
 
-function toggleSelectedDay(day, holidayInfo) {
-  if (selectedDays.has(day)) {
-    selectedDays.delete(day);
-  } else {
-    selectedDays.add(day);
+function toggleSelectedDay(day) {
+  if (!currentActiveYear || !currentActiveMonth) {
+    return;
   }
+
+  const dateKey = getDateKey(currentActiveYear, currentActiveMonth, day);
+
+  if (!activeRowId || !selectionRows.some((row) => row.id === activeRowId && row.year === currentActiveYear && row.month === currentActiveMonth)) {
+    activeRowId = nextRowId++;
+    selectionRows.push({ id: activeRowId, year: currentActiveYear, month: currentActiveMonth, days: [] });
+  }
+
+  const row = selectionRows.find((item) => item.id === activeRowId);
+  if (!row) {
+    return;
+  }
+
+  const dayIndex = row.days.indexOf(day);
+  if (dayIndex >= 0) {
+    row.days.splice(dayIndex, 1);
+  } else {
+    row.days.push(day);
+    row.days.sort((a, b) => a - b);
+  }
+
+  if (!row.days.length) {
+    const removeIndex = selectionRows.findIndex((item) => item.id === activeRowId);
+    if (removeIndex !== -1) {
+      selectionRows.splice(removeIndex, 1);
+    }
+    activeRowId = null;
+    currentSelection.clear();
+  } else {
+    currentSelection = new Set(row.days.map((dayValue) => getDateKey(row.year, row.month, dayValue)));
+  }
+
+  renderCalendar();
+  updateSelectedDaysDisplay();
+}
+
+function startEditingRow(rowId) {
+  const row = selectionRows.find((item) => item.id === rowId);
+  if (!row) {
+    return;
+  }
+
+  yearSelect.value = String(row.year);
+  monthSelect.value = String(row.month);
+  currentActiveYear = row.year;
+  currentActiveMonth = row.month;
+  activeRowId = row.id;
+  currentSelection = new Set(row.days.map((dayValue) => getDateKey(row.year, row.month, dayValue)));
+  viewAllMode = false;
+  viewAllButton.classList.remove("active");
+  viewAllButton.textContent = "Chế độ chọn tất cả ngày";
+
   renderCalendar();
   updateSelectedDaysDisplay();
 }
@@ -197,68 +274,146 @@ function toggleViewAllMode() {
   viewAllMode = !viewAllMode;
   if (viewAllMode) {
     viewAllButton.classList.add("active");
-    viewAllButton.textContent = "Chế độ tất cả ngày";
+    viewAllButton.textContent = "Đang chọn tất cả ngày";
+
+    if (currentActiveYear && currentActiveMonth) {
+      const daysInMonth = new Date(currentActiveYear, currentActiveMonth, 0).getDate();
+      const allDays = Array.from({ length: daysInMonth }, (_, index) => index + 1);
+      activeRowId = nextRowId++;
+      selectionRows.push({ id: activeRowId, year: currentActiveYear, month: currentActiveMonth, days: allDays });
+      currentSelection = new Set(allDays.map((day) => getDateKey(currentActiveYear, currentActiveMonth, day)));
+    }
   } else {
     viewAllButton.classList.remove("active");
-    viewAllButton.textContent = "Xem tất cả ngày";
+    viewAllButton.textContent = "Chế độ chọn tất cả ngày";
+    currentSelection.clear();
   }
+
   renderCalendar();
   updateSelectedDaysDisplay();
 }
 
 function resetSelection() {
-  selectedDays.clear();
+  const selectedYear = Number(yearSelect.value);
+  const selectedMonth = Number(monthSelect.value);
+  const hasRowsForMonth = selectionRows.some((row) => row.year === selectedYear && row.month === selectedMonth);
+
+  if (!hasRowsForMonth) {
+    return;
+  }
+
+  const confirmed = window.confirm("Bạn có chắc muốn reset các lựa chọn của tháng hiện tại không?");
+  if (!confirmed) {
+    return;
+  }
+
+  for (let i = selectionRows.length - 1; i >= 0; i -= 1) {
+    if (selectionRows[i].year === selectedYear && selectionRows[i].month === selectedMonth) {
+      selectionRows.splice(i, 1);
+    }
+  }
+
+  if (activeRowId) {
+    const activeRowStillExists = selectionRows.some((item) => item.id === activeRowId);
+    if (!activeRowStillExists) {
+      activeRowId = null;
+      currentSelection.clear();
+    }
+  }
+
   viewAllMode = false;
   viewAllButton.classList.remove("active");
-  viewAllButton.textContent = "Xem tất cả ngày";
+  viewAllButton.textContent = "Chế độ chọn tất cả ngày";
+  renderCalendar();
+  updateSelectedDaysDisplay();
+}
+
+function clearAllSelection() {
+  const confirmed = window.confirm("Bạn có chắc muốn xóa tất cả mục đã chọn không?");
+  if (!confirmed) {
+    return;
+  }
+  selectionRows.length = 0;
+  activeRowId = null;
+  currentSelection.clear();
   renderCalendar();
   updateSelectedDaysDisplay();
 }
 
 function updateSelectedDaysDisplay() {
-  selectedDaysList.innerHTML = "";
+  selectedDaysTableBody.innerHTML = "";
+
   const selectedYear = Number(yearSelect.value);
   const selectedMonth = Number(monthSelect.value);
-  const holidayMap = getJapaneseHolidays(selectedYear);
-  const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
 
-  if (viewAllMode) {
-    for (let day = 1; day <= daysInMonth; day += 1) {
-      const holidayKey = `${selectedMonth}-${day}`;
-      const holidayInfo = holidayMap.get(holidayKey);
-      const pill = document.createElement("span");
-      pill.className = "selected-day-pill";
-      const weekday = WEEKDAY_MAP[new Date(selectedYear, selectedMonth - 1, day).getDay()];
-      if (holidayInfo) {
-        pill.classList.add("holiday");
-        pill.textContent = `${day}日(${weekday})(祝)`;
-      } else {
-        pill.textContent = `${day}日(${weekday})`;
+  if (!selectionRows.length) {
+    const emptyRow = document.createElement("tr");
+    const emptyCell = document.createElement("td");
+    emptyCell.colSpan = 3;
+    emptyCell.className = "empty-state";
+    emptyCell.textContent = "Chưa có ngày nào được chọn.";
+    emptyRow.appendChild(emptyCell);
+    selectedDaysTableBody.appendChild(emptyRow);
+    clearAllButton.disabled = true;
+    return;
+  }
+
+  clearAllButton.disabled = false;
+
+  const showYear = new Set(selectionRows.map((row) => row.year)).size > 1;
+
+  selectionRows.forEach((row) => {
+    const rowElement = document.createElement("tr");
+
+    const monthCell = document.createElement("td");
+    monthCell.textContent = showYear ? `${row.year}年${row.month}月` : `${row.month}月`;
+    rowElement.appendChild(monthCell);
+
+    const dayCell = document.createElement("td");
+    const dayStrings = row.days.map((day) => {
+      const date = new Date(row.year, row.month - 1, day);
+      const weekday = WEEKDAY_MAP[date.getDay()];
+      const holidayKey = `${row.month}-${day}`;
+      const holidayInfo = getJapaneseHolidays(row.year).get(holidayKey);
+      return holidayInfo ? `${day}(${weekday})(祝)` : `${day}(${weekday})`;
+    });
+    dayCell.textContent = dayStrings.join("  ");
+    rowElement.appendChild(dayCell);
+
+    const actionCell = document.createElement("td");
+    const editButton = document.createElement("button");
+    editButton.type = "button";
+    editButton.className = "action-button";
+    editButton.textContent = "Sửa";
+    editButton.addEventListener("click", () => {
+      startEditingRow(row.id);
+    });
+    actionCell.appendChild(editButton);
+
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "action-button";
+    deleteButton.textContent = "Xóa";
+    deleteButton.addEventListener("click", () => {
+      const confirmed = window.confirm("Bạn có chắc muốn xóa mục này không?");
+      if (!confirmed) {
+        return;
       }
-      selectedDaysList.appendChild(pill);
-    }
-    return;
-  }
+      const rowIndex = selectionRows.findIndex((item) => item.id === row.id);
+      if (rowIndex !== -1) {
+        selectionRows.splice(rowIndex, 1);
+      }
+      if (activeRowId === row.id) {
+        activeRowId = null;
+        currentSelection.clear();
+      }
+      renderCalendar();
+      updateSelectedDaysDisplay();
+    });
+    actionCell.appendChild(deleteButton);
+    rowElement.appendChild(actionCell);
 
-  if (!selectedDays.size) {
-    selectedDaysList.innerHTML = "<p class='empty-state'>Chưa có ngày nào được chọn.</p>";
-    return;
-  }
-
-  const selectedDaysArray = Array.from(selectedDays).sort((a, b) => a - b);
-  selectedDaysArray.forEach((day) => {
-    const holidayKey = `${selectedMonth}-${day}`;
-    const holidayInfo = holidayMap.get(holidayKey);
-    const pill = document.createElement("span");
-    pill.className = "selected-day-pill";
-    const weekday = WEEKDAY_MAP[new Date(selectedYear, selectedMonth - 1, day).getDay()];
-    if (holidayInfo) {
-      pill.classList.add("holiday");
-      pill.textContent = `${day}日(${weekday})(祝)`;
-    } else {
-      pill.textContent = `${day}日(${weekday})`;
-    }
-    selectedDaysList.appendChild(pill);
+    selectedDaysTableBody.appendChild(rowElement);
   });
 }
 
