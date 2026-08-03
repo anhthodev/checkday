@@ -595,7 +595,7 @@ tbody tr.no-weekday {
 }
 
 .selected-days-inline {
-  background: var(--surface);
+  background: transparent;
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 16px 22px;
@@ -621,7 +621,7 @@ tbody tr.no-weekday {
   align-items: center;
   width: 100%;
   border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  background: transparent;
   padding: 12px 14px;
 }
 
