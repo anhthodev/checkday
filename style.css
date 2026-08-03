@@ -586,8 +586,14 @@ tbody tr.no-weekday {
 
 .selected-months-inline {
   display: flex;
-  flex-wrap: wrap;
-  gap: 14px 16px;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.month-line-group {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 14px;
   align-items: flex-start;
 }
 
@@ -623,6 +629,15 @@ tbody tr.no-weekday {
   gap: 10px;
   margin-left: auto;
   align-items: center;
+}
+
+.group-select {
+  min-width: 100px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(28, 41, 56, 0.12);
+  background: var(--surface);
+  color: var(--text);
 }
 
 .inline-action-button {

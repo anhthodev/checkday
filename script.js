@@ -29,6 +29,65 @@ const selectedDaysTableBody = document.getElementById("selectedDaysTableBody");
 const selectedDaysTableWrapper = document.getElementById("selectedDaysTableWrapper");
 const selectedDaysInline = document.getElementById("selectedDaysInline");
 
+function getGroupOrder() {
+  return Array.from(new Set(selectionRows.map((row) => row.groupId))).sort((a, b) => a - b);
+}
+
+function getGroupDisplayIndex(groupId) {
+  const groupOrder = getGroupOrder();
+  return groupOrder.indexOf(groupId) + 1;
+}
+
+function getNextGroupId() {
+  const groupIds = getGroupOrder();
+  if (!groupIds.length) {
+    return 1;
+  }
+  return Math.max(...groupIds) + 1;
+}
+
+function setRowGroup(rowId, groupId) {
+  const row = selectionRows.find((item) => item.id === rowId);
+  if (!row) {
+    return;
+  }
+  row.groupId = groupId;
+  renderCalendar();
+  updateSelectedDaysDisplay();
+}
+
+function createGroupSelect(row) {
+  const select = document.createElement("select");
+  select.className = "group-select";
+  select.title = "Chọn nhóm hàng";
+
+  const groupOrder = getGroupOrder();
+  groupOrder.forEach((groupId) => {
+    const option = document.createElement("option");
+    option.value = String(groupId);
+    option.textContent = `Hàng ${getGroupDisplayIndex(groupId)}`;
+    if (groupId === row.groupId) {
+      option.selected = true;
+    }
+    select.appendChild(option);
+  });
+
+  const newGroupOption = document.createElement("option");
+  newGroupOption.value = "new";
+  newGroupOption.textContent = "Hàng mới";
+  select.appendChild(newGroupOption);
+
+  select.addEventListener("change", () => {
+    if (select.value === "new") {
+      setRowGroup(row.id, getNextGroupId());
+    } else {
+      setRowGroup(row.id, Number(select.value));
+    }
+  });
+
+  return select;
+}
+
 function getDateKey(year, month, day) {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
@@ -223,8 +282,9 @@ function toggleSelectedDay(day) {
   const dateKey = getDateKey(currentActiveYear, currentActiveMonth, day);
 
   if (!activeRowId || !selectionRows.some((row) => row.id === activeRowId && row.year === currentActiveYear && row.month === currentActiveMonth)) {
-    activeRowId = nextRowId++;
-    selectionRows.push({ id: activeRowId, year: currentActiveYear, month: currentActiveMonth, days: [] });
+    const newRowId = nextRowId++;
+    activeRowId = newRowId;
+    selectionRows.push({ id: newRowId, year: currentActiveYear, month: currentActiveMonth, days: [], groupId: newRowId });
   }
 
   const row = selectionRows.find((item) => item.id === activeRowId);
@@ -284,8 +344,9 @@ function toggleViewAllMode() {
     if (currentActiveYear && currentActiveMonth) {
       const daysInMonth = new Date(currentActiveYear, currentActiveMonth, 0).getDate();
       const allDays = Array.from({ length: daysInMonth }, (_, index) => index + 1);
-      activeRowId = nextRowId++;
-      selectionRows.push({ id: activeRowId, year: currentActiveYear, month: currentActiveMonth, days: allDays });
+      const newRowId = nextRowId++;
+      activeRowId = newRowId;
+      selectionRows.push({ id: newRowId, year: currentActiveYear, month: currentActiveMonth, days: allDays, groupId: newRowId });
       currentSelection = new Set(allDays.map((day) => getDateKey(currentActiveYear, currentActiveMonth, day)));
     }
   } else {
@@ -389,62 +450,74 @@ function updateSelectedDaysDisplay() {
     const inlineContainer = document.createElement("div");
     inlineContainer.className = "selected-months-inline";
 
-    selectionRows.forEach((row) => {
-      const monthGroup = document.createElement("div");
-      monthGroup.className = "selected-month-group";
+    const groupOrder = getGroupOrder();
+    groupOrder.forEach((groupId) => {
+      const groupRows = selectionRows.filter((row) => row.groupId === groupId);
+      const rowGroup = document.createElement("div");
+      rowGroup.className = "month-line-group";
 
-      const monthLabel = document.createElement("span");
-      monthLabel.className = "inline-month-label";
-      monthLabel.textContent = showYear ? `${row.year}年${row.month}月` : `${row.month}月`;
-      monthGroup.appendChild(monthLabel);
+      groupRows.forEach((row) => {
+        const monthGroup = document.createElement("div");
+        monthGroup.className = "selected-month-group";
 
-      row.days.forEach((day) => {
-        const date = new Date(row.year, row.month - 1, day);
-        const weekday = WEEKDAY_MAP[date.getDay()];
-        const holidayKey = `${row.month}-${day}`;
-        const holidayInfo = getJapaneseHolidays(row.year).get(holidayKey);
-        const dayTag = document.createElement("span");
-        dayTag.className = "inline-day-tag";
-        dayTag.textContent = holidayInfo ? `${day}(${weekday})(祝)` : `${day}(${weekday})`;
-        monthGroup.appendChild(dayTag);
+        const monthLabel = document.createElement("span");
+        monthLabel.className = "inline-month-label";
+        monthLabel.textContent = showYear ? `${row.year}年${row.month}月` : `${row.month}月`;
+        monthGroup.appendChild(monthLabel);
+
+        row.days.forEach((day) => {
+          const date = new Date(row.year, row.month - 1, day);
+          const weekday = WEEKDAY_MAP[date.getDay()];
+          const holidayKey = `${row.month}-${day}`;
+          const holidayInfo = getJapaneseHolidays(row.year).get(holidayKey);
+          const dayTag = document.createElement("span");
+          dayTag.className = "inline-day-tag";
+          dayTag.textContent = holidayInfo ? `${day}(${weekday})(祝)` : `${day}(${weekday})`;
+          monthGroup.appendChild(dayTag);
+        });
+
+        const actionGroup = document.createElement("div");
+        actionGroup.className = "inline-action-group";
+
+        const groupSelect = createGroupSelect(row);
+        actionGroup.appendChild(groupSelect);
+
+        const editButton = document.createElement("button");
+        editButton.type = "button";
+        editButton.className = "inline-action-button";
+        editButton.textContent = "Sửa";
+        editButton.addEventListener("click", () => {
+          startEditingRow(row.id);
+        });
+        actionGroup.appendChild(editButton);
+
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "inline-action-button";
+        deleteButton.textContent = "Xóa";
+        deleteButton.addEventListener("click", () => {
+          const confirmed = window.confirm("Bạn có chắc muốn xóa mục này không?");
+          if (!confirmed) {
+            return;
+          }
+          const rowIndex = selectionRows.findIndex((item) => item.id === row.id);
+          if (rowIndex !== -1) {
+            selectionRows.splice(rowIndex, 1);
+          }
+          if (activeRowId === row.id) {
+            activeRowId = null;
+            currentSelection.clear();
+          }
+          renderCalendar();
+          updateSelectedDaysDisplay();
+        });
+        actionGroup.appendChild(deleteButton);
+
+        monthGroup.appendChild(actionGroup);
+        rowGroup.appendChild(monthGroup);
       });
 
-      const actionGroup = document.createElement("div");
-      actionGroup.className = "inline-action-group";
-
-      const editButton = document.createElement("button");
-      editButton.type = "button";
-      editButton.className = "inline-action-button";
-      editButton.textContent = "Sửa";
-      editButton.addEventListener("click", () => {
-        startEditingRow(row.id);
-      });
-      actionGroup.appendChild(editButton);
-
-      const deleteButton = document.createElement("button");
-      deleteButton.type = "button";
-      deleteButton.className = "inline-action-button";
-      deleteButton.textContent = "Xóa";
-      deleteButton.addEventListener("click", () => {
-        const confirmed = window.confirm("Bạn có chắc muốn xóa mục này không?");
-        if (!confirmed) {
-          return;
-        }
-        const rowIndex = selectionRows.findIndex((item) => item.id === row.id);
-        if (rowIndex !== -1) {
-          selectionRows.splice(rowIndex, 1);
-        }
-        if (activeRowId === row.id) {
-          activeRowId = null;
-          currentSelection.clear();
-        }
-        renderCalendar();
-        updateSelectedDaysDisplay();
-      });
-      actionGroup.appendChild(deleteButton);
-
-      monthGroup.appendChild(actionGroup);
-      inlineContainer.appendChild(monthGroup);
+      inlineContainer.appendChild(rowGroup);
     });
 
     selectedDaysInline.appendChild(inlineContainer);
@@ -470,6 +543,9 @@ function updateSelectedDaysDisplay() {
     rowElement.appendChild(dayCell);
 
     const actionCell = document.createElement("td");
+    const groupSelect = createGroupSelect(row);
+    actionCell.appendChild(groupSelect);
+
     const editButton = document.createElement("button");
     editButton.type = "button";
     editButton.className = "action-button";
