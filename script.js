@@ -33,7 +33,13 @@ const selectedDaysInline = document.getElementById("selectedDaysInline");
 const selectedDaysPanel = document.querySelector(".selected-days-panel");
 
 function getGroupOrder() {
-  return Array.from(new Set(selectionRows.map((row) => row.groupId))).sort((a, b) => a - b);
+  const groupIds = [];
+  selectionRows.forEach((row) => {
+    if (!groupIds.includes(row.groupId)) {
+      groupIds.push(row.groupId);
+    }
+  });
+  return groupIds;
 }
 
 function getGroupDisplayIndex(groupId) {
@@ -57,6 +63,33 @@ function setRowGroup(rowId, groupId) {
   row.groupId = groupId;
   renderCalendar();
   updateSelectedDaysDisplay();
+}
+
+function moveRow(rowId, direction) {
+  const currentIndex = selectionRows.findIndex((item) => item.id === rowId);
+  const targetIndex = currentIndex + direction;
+  if (currentIndex === -1 || targetIndex < 0 || targetIndex >= selectionRows.length) {
+    return;
+  }
+  const [row] = selectionRows.splice(currentIndex, 1);
+  selectionRows.splice(targetIndex, 0, row);
+  renderCalendar();
+  updateSelectedDaysDisplay();
+}
+
+function createMoveButton(row, direction, isInline = false) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = isInline ? "inline-action-button" : "action-button";
+  button.textContent = direction === "up" ? "↑" : "↓";
+  button.title = direction === "up" ? "Di chuyển lên trên" : "Di chuyển xuống dưới";
+  const currentIndex = selectionRows.findIndex((item) => item.id === row.id);
+  const isDisabled = direction === "up" ? currentIndex === 0 : currentIndex === selectionRows.length - 1;
+  if (isDisabled) {
+    button.disabled = true;
+  }
+  button.addEventListener("click", () => moveRow(row.id, direction === "up" ? -1 : 1));
+  return button;
 }
 
 function createGroupSelect(row) {
@@ -493,6 +526,12 @@ function updateSelectedDaysDisplay() {
         const groupSelect = createGroupSelect(row);
         actionGroup.appendChild(groupSelect);
 
+        const moveUpButton = createMoveButton(row, "up", true);
+        actionGroup.appendChild(moveUpButton);
+
+        const moveDownButton = createMoveButton(row, "down", true);
+        actionGroup.appendChild(moveDownButton);
+
         const editButton = document.createElement("button");
         editButton.type = "button";
         editButton.className = "inline-action-button";
@@ -556,6 +595,12 @@ function updateSelectedDaysDisplay() {
     const actionCell = document.createElement("td");
     const groupSelect = createGroupSelect(row);
     actionCell.appendChild(groupSelect);
+
+    const moveUpButton = createMoveButton(row, "up");
+    actionCell.appendChild(moveUpButton);
+
+    const moveDownButton = createMoveButton(row, "down");
+    actionCell.appendChild(moveDownButton);
 
     const editButton = document.createElement("button");
     editButton.type = "button";
