@@ -33,18 +33,7 @@ const selectedDaysInline = document.getElementById("selectedDaysInline");
 const selectedDaysPanel = document.querySelector(".selected-days-panel");
 
 function getGroupOrder() {
-  const groupIds = [];
-  selectionRows.forEach((row) => {
-    if (!groupIds.includes(row.groupId)) {
-      groupIds.push(row.groupId);
-    }
-  });
-  return groupIds;
-}
-
-function getGroupDisplayIndex(groupId) {
-  const groupOrder = getGroupOrder();
-  return groupOrder.indexOf(groupId) + 1;
+  return Array.from(new Set(selectionRows.map((row) => row.groupId))).sort((a, b) => a - b);
 }
 
 function getNextGroupId() {
@@ -65,14 +54,30 @@ function setRowGroup(rowId, groupId) {
   updateSelectedDaysDisplay();
 }
 
-function moveRow(rowId, direction) {
-  const currentIndex = selectionRows.findIndex((item) => item.id === rowId);
-  const targetIndex = currentIndex + direction;
-  if (currentIndex === -1 || targetIndex < 0 || targetIndex >= selectionRows.length) {
+function changeRowGroup(rowId, direction) {
+  const row = selectionRows.find((item) => item.id === rowId);
+  if (!row) {
     return;
   }
-  const [row] = selectionRows.splice(currentIndex, 1);
-  selectionRows.splice(targetIndex, 0, row);
+  const groupOrder = getGroupOrder();
+  const currentIndex = groupOrder.indexOf(row.groupId);
+  if (currentIndex === -1) {
+    return;
+  }
+
+  if (direction === "up") {
+    if (currentIndex <= 0) {
+      return;
+    }
+    row.groupId = groupOrder[currentIndex - 1];
+  } else {
+    if (currentIndex < groupOrder.length - 1) {
+      row.groupId = groupOrder[currentIndex + 1];
+    } else {
+      row.groupId = getNextGroupId();
+    }
+  }
+
   renderCalendar();
   updateSelectedDaysDisplay();
 }
@@ -82,46 +87,24 @@ function createMoveButton(row, direction, isInline = false) {
   button.type = "button";
   button.className = isInline ? "inline-action-button" : "action-button";
   button.textContent = direction === "up" ? "↑" : "↓";
-  button.title = direction === "up" ? "Di chuyển lên trên" : "Di chuyển xuống dưới";
-  const currentIndex = selectionRows.findIndex((item) => item.id === row.id);
-  const isDisabled = direction === "up" ? currentIndex === 0 : currentIndex === selectionRows.length - 1;
+  button.title = direction === "up" ? "Di chuyển lên nhóm trước" : "Di chuyển xuống nhóm sau";
+
+  const groupOrder = getGroupOrder();
+  const currentGroupIndex = groupOrder.indexOf(row.groupId);
+  const isDisabled = direction === "up" ? currentGroupIndex <= 0 : false;
   if (isDisabled) {
     button.disabled = true;
   }
-  button.addEventListener("click", () => moveRow(row.id, direction === "up" ? -1 : 1));
+
+  button.addEventListener("click", () => changeRowGroup(row.id, direction));
   return button;
 }
 
-function createGroupSelect(row) {
-  const select = document.createElement("select");
-  select.className = "group-select";
-  select.title = "Chọn nhóm hàng";
-
-  const groupOrder = getGroupOrder();
-  groupOrder.forEach((groupId) => {
-    const option = document.createElement("option");
-    option.value = String(groupId);
-    option.textContent = `Hàng ${getGroupDisplayIndex(groupId)}`;
-    if (groupId === row.groupId) {
-      option.selected = true;
-    }
-    select.appendChild(option);
-  });
-
-  const newGroupOption = document.createElement("option");
-  newGroupOption.value = "new";
-  newGroupOption.textContent = "Hàng mới";
-  select.appendChild(newGroupOption);
-
-  select.addEventListener("change", () => {
-    if (select.value === "new") {
-      setRowGroup(row.id, getNextGroupId());
-    } else {
-      setRowGroup(row.id, Number(select.value));
-    }
-  });
-
-  return select;
+function createGroupLabel(row) {
+  const groupLabel = document.createElement("span");
+  groupLabel.className = "group-label";
+  groupLabel.textContent = `Hàng ${row.groupId}`;
+  return groupLabel;
 }
 
 function getDateKey(year, month, day) {
@@ -523,8 +506,8 @@ function updateSelectedDaysDisplay() {
         const actionGroup = document.createElement("div");
         actionGroup.className = "inline-action-group";
 
-        const groupSelect = createGroupSelect(row);
-        actionGroup.appendChild(groupSelect);
+        const groupLabel = createGroupLabel(row);
+        actionGroup.appendChild(groupLabel);
 
         const moveUpButton = createMoveButton(row, "up", true);
         actionGroup.appendChild(moveUpButton);
@@ -593,8 +576,8 @@ function updateSelectedDaysDisplay() {
     rowElement.appendChild(dayCell);
 
     const actionCell = document.createElement("td");
-    const groupSelect = createGroupSelect(row);
-    actionCell.appendChild(groupSelect);
+    const groupLabel = createGroupLabel(row);
+    actionCell.appendChild(groupLabel);
 
     const moveUpButton = createMoveButton(row, "up");
     actionCell.appendChild(moveUpButton);

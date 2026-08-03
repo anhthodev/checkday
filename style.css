@@ -654,13 +654,16 @@ tbody tr.no-weekday {
   align-items: center;
 }
 
-.group-select {
-  min-width: 100px;
+.group-label {
+  display: inline-flex;
+  align-items: center;
   padding: 6px 10px;
   border-radius: 12px;
-  border: 1px solid rgba(28, 41, 56, 0.12);
-  background: var(--surface);
+  background: rgba(30, 164, 74, 0.08);
   color: var(--text);
+  font-weight: 700;
+  white-space: nowrap;
+  margin-right: 8px;
 }
 
 .inline-action-button {
