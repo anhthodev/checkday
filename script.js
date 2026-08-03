@@ -100,13 +100,6 @@ function createMoveButton(row, direction, isInline = false) {
   return button;
 }
 
-function createGroupLabel(row) {
-  const groupLabel = document.createElement("span");
-  groupLabel.className = "group-label";
-  groupLabel.textContent = `Hàng ${row.groupId}`;
-  return groupLabel;
-}
-
 function getDateKey(year, month, day) {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
@@ -506,9 +499,6 @@ function updateSelectedDaysDisplay() {
         const actionGroup = document.createElement("div");
         actionGroup.className = "inline-action-group";
 
-        const groupLabel = createGroupLabel(row);
-        actionGroup.appendChild(groupLabel);
-
         const moveUpButton = createMoveButton(row, "up", true);
         actionGroup.appendChild(moveUpButton);
 
@@ -576,9 +566,6 @@ function updateSelectedDaysDisplay() {
     rowElement.appendChild(dayCell);
 
     const actionCell = document.createElement("td");
-    const groupLabel = createGroupLabel(row);
-    actionCell.appendChild(groupLabel);
-
     const moveUpButton = createMoveButton(row, "up");
     actionCell.appendChild(moveUpButton);
 

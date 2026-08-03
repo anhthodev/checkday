@@ -654,18 +654,6 @@ tbody tr.no-weekday {
   align-items: center;
 }
 
-.group-label {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: 12px;
-  background: rgba(30, 164, 74, 0.08);
-  color: var(--text);
-  font-weight: 700;
-  white-space: nowrap;
-  margin-right: 8px;
-}
-
 .inline-action-button {
   padding: 6px 10px;
   border-radius: 12px;
