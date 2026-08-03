@@ -625,11 +625,17 @@ function updateSelectedDaysDisplay() {
         monthLabel.textContent = showYear ? `${row.year}年${row.month}月` : `${row.month}月`;
         monthGroup.appendChild(monthLabel);
 
-        row.days.forEach((day) => {
+        row.days.forEach((day, index) => {
           const date = new Date(row.year, row.month - 1, day);
           const weekday = WEEKDAY_MAP[date.getDay()];
           const holidayKey = `${row.month}-${day}`;
           const holidayInfo = getJapaneseHolidays(row.year).get(holidayKey);
+          if (index > 0) {
+            const separator = document.createElement("span");
+            separator.className = "inline-day-separator";
+            separator.textContent = "●";
+            monthGroup.appendChild(separator);
+          }
           const dayTag = document.createElement("span");
           dayTag.className = "inline-day-tag";
           dayTag.textContent = holidayInfo ? `${day}(${weekday})(祝)` : `${day}(${weekday})`;
@@ -704,7 +710,7 @@ function updateSelectedDaysDisplay() {
       const holidayInfo = getJapaneseHolidays(row.year).get(holidayKey);
       return holidayInfo ? `${day}(${weekday})(祝)` : `${day}(${weekday})`;
     });
-    dayCell.textContent = dayStrings.join("  ");
+    dayCell.textContent = dayStrings.join("  ●  ");
     rowElement.appendChild(dayCell);
 
     const actionCell = document.createElement("td");

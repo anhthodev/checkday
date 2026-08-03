@@ -648,6 +648,16 @@ tbody tr.no-weekday {
   white-space: nowrap;
 }
 
+.inline-day-separator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-weight: 700;
+  margin: 0 8px;
+  user-select: none;
+}
+
 .inline-action-group {
   display: flex;
   gap: 10px;
