@@ -46,14 +46,6 @@
               <button id="resetButton" class="btn tertiary" type="button">Reset</button>
               <button id="dateInputToggleButton" class="btn secondary" type="button">Chế độ nhập ngày</button>
             </div>
-            <div class="textarea-row hidden" id="dateInputContainer">
-              <label for="dateInputTextarea">Nhập ngày (mỗi dòng hoặc cách nhau bằng dấu phẩy). Hỗ trợ: YYYY-MM-DD, MM-DD, DD, DD-DD (trong tháng)</label>
-              <textarea id="dateInputTextarea" placeholder="Ví dụ: 2026-08-05, 8-6, 1-3"></textarea>
-              <div class="button-row" style="margin-top:8px;">
-                <button id="applyDateInputButton" class="btn primary" type="button">Áp dụng</button>
-                <button id="cancelDateInputButton" class="btn secondary" type="button">Hủy</button>
-              </div>
-            </div>
           </div>
 
         </section>
@@ -73,6 +65,15 @@
                 <button id="clearAllButton" class="btn tertiary" type="button">Xóa tất cả</button>
               </div>
             </div>
+            <div class="date-input-container hidden" id="dateInputContainer">
+              <label for="dateInputTextarea">Nhập ngày (ví dụ: 1,2,3,4)</label>
+              <textarea id="dateInputTextarea" placeholder="Ví dụ: 1,2,3,4"></textarea>
+              <div class="button-row" style="margin-top:8px;">
+                <button id="applyDateInputButton" class="btn primary" type="button">Áp dụng</button>
+                <button id="cancelDateInputButton" class="btn secondary" type="button">Hủy</button>
+              </div>
+            </div>
+
             <div class="selected-days-table-wrapper" id="selectedDaysTableWrapper">
               <table class="selected-days-table" id="selectedDaysTable">
                 <thead>

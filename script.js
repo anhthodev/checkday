@@ -422,14 +422,22 @@ function toggleDateInputMode() {
   if (!dateInputContainer) return;
   const isOpen = !dateInputContainer.classList.contains("hidden");
   if (isOpen) {
+    // close
     dateInputContainer.classList.add("hidden");
     dateInputToggleButton.classList.remove("active");
     dateInputToggleButton.textContent = "Chế độ nhập ngày";
+    // restore selected-days display
+    selectedDaysTableWrapper.classList.toggle("hidden", layoutMode === "inline");
+    selectedDaysInline.classList.toggle("hidden", layoutMode === "table");
   } else {
+    // open - replace the selected-days display
     dateInputContainer.classList.remove("hidden");
     dateInputToggleButton.classList.add("active");
     dateInputToggleButton.textContent = "Đang nhập ngày";
     if (dateInputTextarea) dateInputTextarea.focus();
+    // hide selected-days display while entering
+    selectedDaysTableWrapper.classList.add("hidden");
+    selectedDaysInline.classList.add("hidden");
   }
 }
 
@@ -441,7 +449,8 @@ function applyDateInput() {
     return;
   }
 
-  const tokens = raw.split(/[\n,;]+/).map((s) => s.trim()).filter(Boolean);
+  // split only by commas as requested
+  const tokens = raw.split(',').map((s) => s.trim()).filter(Boolean);
   const additions = {}; // key: "year-month" -> Set(days)
 
   tokens.forEach((token) => {
@@ -528,6 +537,9 @@ function applyDateInput() {
     dateInputToggleButton.classList.remove("active");
     dateInputToggleButton.textContent = "Chế độ nhập ngày";
   }
+  // restore selected-days display
+  selectedDaysTableWrapper.classList.toggle("hidden", layoutMode === "inline");
+  selectedDaysInline.classList.toggle("hidden", layoutMode === "table");
   renderCalendar();
   updateSelectedDaysDisplay();
 }
@@ -539,6 +551,9 @@ function cancelDateInput() {
     dateInputToggleButton.classList.remove("active");
     dateInputToggleButton.textContent = "Chế độ nhập ngày";
   }
+  // restore selected-days display
+  selectedDaysTableWrapper.classList.toggle("hidden", layoutMode === "inline");
+  selectedDaysInline.classList.toggle("hidden", layoutMode === "table");
 }
 
 function toggleLayoutMode() {

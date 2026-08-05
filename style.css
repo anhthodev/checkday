@@ -157,6 +157,18 @@ textarea {
   box-shadow: 0 0 0 4px rgba(18, 138, 255, 0.12);
 }
 
+/* Date input panel specific sizing so adjacent buttons don't stretch */
+.date-input-container textarea,
+#dateInputTextarea {
+  width: 100%;
+  max-width: 520px;
+  min-height: 120px;
+}
+
+.date-input-container .button-row {
+  justify-content: flex-start;
+}
+
 .button-row {
   display: flex;
   gap: 12px;
