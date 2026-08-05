@@ -383,32 +383,10 @@ function toggleSelectedDay(day) {
 }
 
 function formatDaysToInput(days) {
+  // Return expanded comma-separated list (no ranges) per user's request: e.g., "1,2,3,5"
   if (!Array.isArray(days) || days.length === 0) return "";
-  const sorted = [...days].sort((a, b) => a - b);
-  const parts = [];
-  let start = sorted[0];
-  let prev = sorted[0];
-  for (let i = 1; i < sorted.length; i += 1) {
-    const cur = sorted[i];
-    if (cur === prev + 1) {
-      prev = cur;
-      continue;
-    }
-    if (start === prev) {
-      parts.push(String(start));
-    } else {
-      parts.push(`${start}-${prev}`);
-    }
-    start = cur;
-    prev = cur;
-  }
-  // push last
-  if (start === prev) {
-    parts.push(String(start));
-  } else {
-    parts.push(`${start}-${prev}`);
-  }
-  return parts.join(",");
+  const sorted = [...new Set(days)].sort((a, b) => a - b);
+  return sorted.join(",");
 }
 
 function startEditingRow(rowId) {
