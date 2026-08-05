@@ -435,11 +435,12 @@ function setInputMode(mode) {
     modeInputButton.setAttribute('aria-selected', 'true');
     modeSelectButton.classList.remove('active');
     modeSelectButton.setAttribute('aria-selected', 'false');
-    // show input box, hide calendar & selected-days lists
+    // show input box; do NOT hide calendar or selected-days — user requested both visible
     if (dateInputContainer) dateInputContainer.classList.remove('hidden');
-    if (calendarGrid) calendarGrid.classList.add('hidden');
-    if (selectedDaysTableWrapper) selectedDaysTableWrapper.classList.add('hidden');
-    if (selectedDaysInline) selectedDaysInline.classList.add('hidden');
+    if (calendarGrid) calendarGrid.classList.remove('hidden');
+    // keep selected-days visible (respect layout mode)
+    selectedDaysTableWrapper.classList.toggle('hidden', layoutMode === 'inline');
+    selectedDaysInline.classList.toggle('hidden', layoutMode === 'table');
   } else {
     modeSelectButton.classList.add('active');
     modeSelectButton.setAttribute('aria-selected', 'true');
@@ -553,29 +554,16 @@ function applyDateInput() {
   }
 
   saveState();
+  // Clear the textarea but keep the input box open (per request)
   dateInputTextarea.value = "";
-  if (dateInputContainer) dateInputContainer.classList.add("hidden");
-  if (dateInputToggleButton) {
-    dateInputToggleButton.classList.remove("active");
-    dateInputToggleButton.textContent = "Chế độ nhập ngày";
-  }
-  // restore selected-days display
-  selectedDaysTableWrapper.classList.toggle("hidden", layoutMode === "inline");
-  selectedDaysInline.classList.toggle("hidden", layoutMode === "table");
+  // Keep inputMode as 'input' and keep the dateInputContainer visible so user can continue entering
   renderCalendar();
   updateSelectedDaysDisplay();
 }
 
 function cancelDateInput() {
+  // Per request: Cancel should just clear the input but keep input box open while in input mode.
   if (dateInputTextarea) dateInputTextarea.value = "";
-  if (dateInputContainer) dateInputContainer.classList.add("hidden");
-  if (dateInputToggleButton) {
-    dateInputToggleButton.classList.remove("active");
-    dateInputToggleButton.textContent = "Chế độ nhập ngày";
-  }
-  // restore selected-days display
-  selectedDaysTableWrapper.classList.toggle("hidden", layoutMode === "inline");
-  selectedDaysInline.classList.toggle("hidden", layoutMode === "table");
 }
 
 function toggleLayoutMode() {
