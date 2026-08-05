@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
@@ -23,9 +23,7 @@
             </div>
           </div>
           <p class="hero-text">
-            Chọn năm và tháng để hiển thị các nút ngày. Nhấn vào các con số để
-            chọn; ngày đã chọn sẽ hiện bên dưới kèm thứ Nhật, và nếu là ngày lễ
-            thì sẽ chỉ hiển thị chữ lễ.
+            Chọn năm và tháng để hiển thị các nút ngày. Nhấn vào các con số để chọn; ngày đã chọn sẽ hiện bên dưới kèm thứ Nhật, và nếu là ngày lễ thì sẽ chỉ hiển thị chữ lễ.
           </p>
         </div>
       </header>
@@ -44,140 +42,68 @@
           </div>
           <div class="field-row field-row--inline field-row--controls">
             <div class="button-row">
-              <button id="viewAllButton" class="btn secondary" type="button">
-                Chế độ chọn tất cả ngày
-              </button>
-              <button id="resetButton" class="btn tertiary" type="button">
-                Reset
-              </button>
-              <div
-                class="mode-toggle"
-                role="tablist"
-                aria-label="Chế độ hiển thị"
-              >
-                <button
-                  id="modeSelectButton"
-                  class="btn secondary"
-                  type="button"
-                  role="tab"
-                  aria-selected="true"
-                >
-                  Chế độ chọn
-                </button>
-                <button
-                  id="modeInputButton"
-                  class="btn secondary"
-                  type="button"
-                  role="tab"
-                  aria-selected="false"
-                >
-                  Chế độ nhập
-                </button>
+              <button id="viewAllButton" class="btn secondary" type="button">Chế độ chọn tất cả ngày</button>
+              <button id="resetButton" class="btn tertiary" type="button">Reset</button>
+              <div class="mode-toggle" role="tablist" aria-label="Chế độ hiển thị">
+                <button id="modeSelectButton" class="btn secondary" type="button" role="tab" aria-selected="true">Chế độ chọn</button>
+                <button id="modeInputButton" class="btn secondary" type="button" role="tab" aria-selected="false">Chế độ nhập</button>
               </div>
             </div>
           </div>
+
         </section>
 
         <section class="panel calendar-panel">
           <h2 class="panel-title">Lịch ngày & thứ</h2>
           <div class="calendar-grid" id="calendarGrid">
-            <p class="empty-state">
-              Chọn năm và tháng để xem các ngày trong tháng.
-            </p>
+            <p class="empty-state">Chọn năm và tháng để xem các ngày trong tháng.</p>
           </div>
           <div class="selected-days-panel">
             <div class="selected-days-panel__header">
               <h3 class="panel-subtitle">Ngày đã chọn</h3>
               <div class="selected-days-panel__actions">
-                <button
-                  id="layoutToggleButton"
-                  class="btn secondary"
-                  type="button"
-                >
-                  Dạng dòng
-                </button>
-                <button
-                  id="toggleActionsButton"
-                  class="btn secondary"
-                  type="button"
-                >
-                  Ẩn sửa/xóa
-                </button>
-                <button
-                  id="toggleMoveButtonsButton"
-                  class="btn secondary"
-                  type="button"
-                >
-                  Ẩn lên/xuống
-                </button>
-                <button id="clearAllButton" class="btn tertiary" type="button">
-                  Xóa tất cả
-                </button>
+                <button id="layoutToggleButton" class="btn secondary" type="button">Dạng dòng</button>
+                <button id="toggleActionsButton" class="btn secondary" type="button">Ẩn sửa/xóa</button>
+                <button id="toggleMoveButtonsButton" class="btn secondary" type="button">Ẩn lên/xuống</button>
+                <button id="clearAllButton" class="btn tertiary" type="button">Xóa tất cả</button>
               </div>
             </div>
             <div class="date-input-container hidden" id="dateInputContainer">
               <label for="dateInputTextarea">Nhập ngày (ví dụ: 1-2-3-4)</label>
-              <textarea
-                id="dateInputTextarea"
-                placeholder="Ví dụ: 1-2-3-4"
-              ></textarea>
-              <div class="button-row" style="margin-top: 8px">
-                <button
-                  id="applyDateInputButton"
-                  class="btn primary"
-                  type="button"
-                >
-                  Áp dụng
-                </button>
-                <button
-                  id="cancelDateInputButton"
-                  class="btn secondary"
-                  type="button"
-                >
-                  Hủy
-                </button>
+              <textarea id="dateInputTextarea" placeholder="Ví dụ: 1-2-3-4"></textarea>
+              <div class="button-row" style="margin-top:8px;">
+                <button id="applyDateInputButton" class="btn primary" type="button">Áp dụng</button>
+                <button id="cancelDateInputButton" class="btn secondary" type="button">Hủy</button>
               </div>
             </div>
 
-            <div
-              class="selected-days-table-wrapper"
-              id="selectedDaysTableWrapper"
-            >
+            <div class="selected-days-table-wrapper" id="selectedDaysTableWrapper">
               <table class="selected-days-table" id="selectedDaysTable">
                 <thead>
                   <tr>
-                    <th>Tháng</th>
-                    <th>Ngày</th>
-                    <th>Hành động</th>
-                  </tr>
+                      <th>Tháng</th>
+                      <th>Ngày</th>
+                      <th>Hành động</th>
+                    </tr>
                 </thead>
                 <tbody id="selectedDaysTableBody">
                   <tr>
-                    <td colspan="3" class="empty-state">
-                      Chưa có ngày nào được chọn.
-                    </td>
+                    <td colspan="3" class="empty-state">Chưa có ngày nào được chọn.</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <div
-              class="selected-days-inline hidden"
-              id="selectedDaysInline"
-            ></div>
+            <div class="selected-days-inline hidden" id="selectedDaysInline"></div>
           </div>
         </section>
+
       </main>
 
       <footer class="footer">
         <p>Made by anhthodev 🚀</p>
       </footer>
 
-      <button
-        id="scrollTopButton"
-        class="scroll-top-button"
-        type="button"
-        aria-label="Quay về đầu trang"
-      >
+      <button id="scrollTopButton" class="scroll-top-button" type="button" aria-label="Quay về đầu trang">
         ↑
       </button>
     </div>
