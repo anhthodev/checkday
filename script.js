@@ -27,7 +27,8 @@ let hideMoveControls = false;
 const STORAGE_KEY = "japaneseCalendarSelection";
 const viewAllButton = document.getElementById("viewAllButton");
 const resetButton = document.getElementById("resetButton");
-const dateInputToggleButton = document.getElementById("dateInputToggleButton");
+const modeSelectButton = document.getElementById("modeSelectButton");
+const modeInputButton = document.getElementById("modeInputButton");
 const dateInputContainer = document.getElementById("dateInputContainer");
 const dateInputTextarea = document.getElementById("dateInputTextarea");
 const applyDateInputButton = document.getElementById("applyDateInputButton");
@@ -40,6 +41,8 @@ const selectedDaysTableBody = document.getElementById("selectedDaysTableBody");
 const selectedDaysTableWrapper = document.getElementById("selectedDaysTableWrapper");
 const selectedDaysInline = document.getElementById("selectedDaysInline");
 const selectedDaysPanel = document.querySelector(".selected-days-panel");
+
+let inputMode = 'select'; // 'select' or 'input'
 
 function getGroupOrder() {
   if (!groupOrder.length && selectionRows.length) {
@@ -173,16 +176,22 @@ function initializeApp() {
   layoutToggleButton.addEventListener("click", toggleLayoutMode);
   toggleActionsButton.addEventListener("click", toggleActionsVisibility);
   toggleMoveButtonsButton.addEventListener("click", toggleMoveControlsVisibility);
-  // Date input mode listeners
-  if (dateInputToggleButton) dateInputToggleButton.addEventListener("click", toggleDateInputMode);
+  // Mode buttons
+  if (modeSelectButton) modeSelectButton.addEventListener("click", () => setInputMode('select'));
+  if (modeInputButton) modeInputButton.addEventListener("click", () => setInputMode('input'));
   if (applyDateInputButton) applyDateInputButton.addEventListener("click", applyDateInput);
   if (cancelDateInputButton) cancelDateInputButton.addEventListener("click", cancelDateInput);
   yearSelect.addEventListener("change", handleMonthChange);
   monthSelect.addEventListener("change", handleMonthChange);
   window.addEventListener("scroll", handleScroll);
   scrollTopButton.addEventListener("click", scrollToTop);
+  // After initial load, apply the saved input mode (or default)
   renderCalendar();
   updateSelectedDaysDisplay();
+  // apply saved mode
+  setTimeout(() => {
+    setInputMode(inputMode);
+  }, 0);
   handleScroll();
 }
 
@@ -418,27 +427,31 @@ function toggleViewAllMode() {
   updateSelectedDaysDisplay();
 }
 
-function toggleDateInputMode() {
-  if (!dateInputContainer) return;
-  const isOpen = !dateInputContainer.classList.contains("hidden");
-  if (isOpen) {
-    // close
-    dateInputContainer.classList.add("hidden");
-    dateInputToggleButton.classList.remove("active");
-    dateInputToggleButton.textContent = "Chế độ nhập ngày";
-    // restore selected-days display
-    selectedDaysTableWrapper.classList.toggle("hidden", layoutMode === "inline");
-    selectedDaysInline.classList.toggle("hidden", layoutMode === "table");
+function setInputMode(mode) {
+  inputMode = mode === 'input' ? 'input' : 'select';
+  // Persist and update UI
+  if (inputMode === 'input') {
+    modeInputButton.classList.add('active');
+    modeInputButton.setAttribute('aria-selected', 'true');
+    modeSelectButton.classList.remove('active');
+    modeSelectButton.setAttribute('aria-selected', 'false');
+    // show input box, hide calendar & selected-days lists
+    if (dateInputContainer) dateInputContainer.classList.remove('hidden');
+    if (calendarGrid) calendarGrid.classList.add('hidden');
+    if (selectedDaysTableWrapper) selectedDaysTableWrapper.classList.add('hidden');
+    if (selectedDaysInline) selectedDaysInline.classList.add('hidden');
   } else {
-    // open - replace the selected-days display
-    dateInputContainer.classList.remove("hidden");
-    dateInputToggleButton.classList.add("active");
-    dateInputToggleButton.textContent = "Đang nhập ngày";
-    if (dateInputTextarea) dateInputTextarea.focus();
-    // hide selected-days display while entering
-    selectedDaysTableWrapper.classList.add("hidden");
-    selectedDaysInline.classList.add("hidden");
+    modeSelectButton.classList.add('active');
+    modeSelectButton.setAttribute('aria-selected', 'true');
+    modeInputButton.classList.remove('active');
+    modeInputButton.setAttribute('aria-selected', 'false');
+    if (dateInputContainer) dateInputContainer.classList.add('hidden');
+    if (calendarGrid) calendarGrid.classList.remove('hidden');
+    // restore selected-days view according to layoutMode
+    selectedDaysTableWrapper.classList.toggle('hidden', layoutMode === 'inline');
+    selectedDaysInline.classList.toggle('hidden', layoutMode === 'table');
   }
+  saveState();
 }
 
 function applyDateInput() {
@@ -452,6 +465,8 @@ function applyDateInput() {
   // split only by commas as requested
   const tokens = raw.split(',').map((s) => s.trim()).filter(Boolean);
   const additions = {}; // key: "year-month" -> Set(days)
+
+  // If only numbers provided without year/month, they apply to currently selected year/month
 
   tokens.forEach((token) => {
     let m;
@@ -529,6 +544,13 @@ function applyDateInput() {
 
     row.days = Array.from(new Set([...row.days, ...days])).sort((a, b) => a - b);
   });
+
+  // If user was in input mode, keep them in input mode after applying (but restore selected-days visibility)
+  if (inputMode === 'input') {
+    // keep mode but restore selected-days visibility to reflect new data when switching back
+    selectedDaysTableWrapper.classList.toggle('hidden', layoutMode === 'inline');
+    selectedDaysInline.classList.toggle('hidden', layoutMode === 'table');
+  }
 
   saveState();
   dateInputTextarea.value = "";
@@ -629,6 +651,7 @@ function saveState() {
     layoutMode,
     hideActions,
     hideMoveControls,
+    inputMode,
   };
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -686,6 +709,9 @@ function loadState() {
     }
     hideActions = Boolean(parsed.hideActions);
     hideMoveControls = Boolean(parsed.hideMoveControls);
+    if (parsed.inputMode === 'input' || parsed.inputMode === 'select') {
+      inputMode = parsed.inputMode;
+    }
     nextRowId = selectionRows.reduce((maxId, row) => Math.max(maxId, row.id), 0) + 1;
     selectedDaysPanel.classList.toggle("hide-actions", hideActions);
     selectedDaysPanel.classList.toggle("hide-move-controls", hideMoveControls);

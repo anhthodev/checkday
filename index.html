@@ -44,7 +44,10 @@
             <div class="button-row">
               <button id="viewAllButton" class="btn secondary" type="button">Chế độ chọn tất cả ngày</button>
               <button id="resetButton" class="btn tertiary" type="button">Reset</button>
-              <button id="dateInputToggleButton" class="btn secondary" type="button">Chế độ nhập ngày</button>
+              <div class="mode-toggle" role="tablist" aria-label="Chế độ hiển thị">
+                <button id="modeSelectButton" class="btn secondary" type="button" role="tab" aria-selected="true">Chế độ chọn</button>
+                <button id="modeInputButton" class="btn secondary" type="button" role="tab" aria-selected="false">Chế độ nhập</button>
+              </div>
             </div>
           </div>
 
