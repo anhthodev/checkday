@@ -27,6 +27,11 @@ let hideMoveControls = false;
 const STORAGE_KEY = "japaneseCalendarSelection";
 const viewAllButton = document.getElementById("viewAllButton");
 const resetButton = document.getElementById("resetButton");
+const dateInputToggleButton = document.getElementById("dateInputToggleButton");
+const dateInputContainer = document.getElementById("dateInputContainer");
+const dateInputTextarea = document.getElementById("dateInputTextarea");
+const applyDateInputButton = document.getElementById("applyDateInputButton");
+const cancelDateInputButton = document.getElementById("cancelDateInputButton");
 const clearAllButton = document.getElementById("clearAllButton");
 const layoutToggleButton = document.getElementById("layoutToggleButton");
 const toggleActionsButton = document.getElementById("toggleActionsButton");
@@ -168,6 +173,10 @@ function initializeApp() {
   layoutToggleButton.addEventListener("click", toggleLayoutMode);
   toggleActionsButton.addEventListener("click", toggleActionsVisibility);
   toggleMoveButtonsButton.addEventListener("click", toggleMoveControlsVisibility);
+  // Date input mode listeners
+  if (dateInputToggleButton) dateInputToggleButton.addEventListener("click", toggleDateInputMode);
+  if (applyDateInputButton) applyDateInputButton.addEventListener("click", applyDateInput);
+  if (cancelDateInputButton) cancelDateInputButton.addEventListener("click", cancelDateInput);
   yearSelect.addEventListener("change", handleMonthChange);
   monthSelect.addEventListener("change", handleMonthChange);
   window.addEventListener("scroll", handleScroll);
@@ -407,6 +416,129 @@ function toggleViewAllMode() {
 
   renderCalendar();
   updateSelectedDaysDisplay();
+}
+
+function toggleDateInputMode() {
+  if (!dateInputContainer) return;
+  const isOpen = !dateInputContainer.classList.contains("hidden");
+  if (isOpen) {
+    dateInputContainer.classList.add("hidden");
+    dateInputToggleButton.classList.remove("active");
+    dateInputToggleButton.textContent = "Chế độ nhập ngày";
+  } else {
+    dateInputContainer.classList.remove("hidden");
+    dateInputToggleButton.classList.add("active");
+    dateInputToggleButton.textContent = "Đang nhập ngày";
+    if (dateInputTextarea) dateInputTextarea.focus();
+  }
+}
+
+function applyDateInput() {
+  if (!dateInputTextarea) return;
+  const raw = dateInputTextarea.value.trim();
+  if (!raw) {
+    alert("Vui lòng nhập ít nhất một ngày.");
+    return;
+  }
+
+  const tokens = raw.split(/[\n,;]+/).map((s) => s.trim()).filter(Boolean);
+  const additions = {}; // key: "year-month" -> Set(days)
+
+  tokens.forEach((token) => {
+    let m;
+    // YYYY-MM-DD or YYYY/MM/DD or YYYY.MM.DD
+    m = token.match(/^(\d{4})[\/\.-](\d{1,2})[\/\.-](\d{1,2})$/);
+    if (m) {
+      const y = Number(m[1]);
+      const mo = Number(m[2]);
+      const d = Number(m[3]);
+      const key = `${y}-${mo}`;
+      additions[key] = additions[key] || new Set();
+      additions[key].add(d);
+      return;
+    }
+
+    // MM-DD or MM/DD or MM.DD (use selected year)
+    m = token.match(/^(\d{1,2})[\/\.-](\d{1,2})$/);
+    if (m) {
+      const mo = Number(m[1]);
+      const d = Number(m[2]);
+      const y = Number(yearSelect.value);
+      if (!y) return;
+      const key = `${y}-${mo}`;
+      additions[key] = additions[key] || new Set();
+      additions[key].add(d);
+      return;
+    }
+
+    // Range within current month: DD-DD
+    m = token.match(/^(\d{1,2})\s*-\s*(\d{1,2})$/);
+    if (m) {
+      const start = Number(m[1]);
+      const end = Number(m[2]);
+      const y = Number(yearSelect.value);
+      const mo = Number(monthSelect.value);
+      if (!y || !mo) return;
+      const key = `${y}-${mo}`;
+      additions[key] = additions[key] || new Set();
+      for (let d = Math.min(start, end); d <= Math.max(start, end); d += 1) {
+        additions[key].add(d);
+      }
+      return;
+    }
+
+    // Single day (DD) in current month/year
+    m = token.match(/^(\d{1,2})$/);
+    if (m) {
+      const d = Number(m[1]);
+      const y = Number(yearSelect.value);
+      const mo = Number(monthSelect.value);
+      if (!y || !mo) return;
+      const key = `${y}-${mo}`;
+      additions[key] = additions[key] || new Set();
+      additions[key].add(d);
+      return;
+    }
+
+    // otherwise ignore token
+  });
+
+  Object.keys(additions).forEach((key) => {
+    const [y, mo] = key.split("-").map(Number);
+    const maxDay = new Date(y, mo, 0).getDate();
+    const days = Array.from(additions[key]).filter((n) => Number.isInteger(n) && n >= 1 && n <= maxDay);
+    if (!days.length) return;
+
+    // merge into an existing row for same year/month if present, otherwise create new
+    let row = selectionRows.find((r) => r.year === y && r.month === mo);
+    if (!row) {
+      const id = nextRowId++;
+      row = { id, year: y, month: mo, days: [], groupId: id };
+      selectionRows.push(row);
+      addGroupOrder(id);
+    }
+
+    row.days = Array.from(new Set([...row.days, ...days])).sort((a, b) => a - b);
+  });
+
+  saveState();
+  dateInputTextarea.value = "";
+  if (dateInputContainer) dateInputContainer.classList.add("hidden");
+  if (dateInputToggleButton) {
+    dateInputToggleButton.classList.remove("active");
+    dateInputToggleButton.textContent = "Chế độ nhập ngày";
+  }
+  renderCalendar();
+  updateSelectedDaysDisplay();
+}
+
+function cancelDateInput() {
+  if (dateInputTextarea) dateInputTextarea.value = "";
+  if (dateInputContainer) dateInputContainer.classList.add("hidden");
+  if (dateInputToggleButton) {
+    dateInputToggleButton.classList.remove("active");
+    dateInputToggleButton.textContent = "Chế độ nhập ngày";
+  }
 }
 
 function toggleLayoutMode() {
