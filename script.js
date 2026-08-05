@@ -617,12 +617,6 @@ function resetSelection() {
     return;
   }
 
-  const confirmed = window.confirm("Bạn có chắc muốn reset các lựa chọn của tháng hiện tại không?");
-  if (!confirmed) {
-    return;
-  }
-
->>>>>>> ad1da8d (abc)
   for (let i = selectionRows.length - 1; i >= 0; i -= 1) {
     if (selectionRows[i].year === selectedYear && selectionRows[i].month === selectedMonth) {
       const oldGroupId = selectionRows[i].groupId;
