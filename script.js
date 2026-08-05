@@ -382,6 +382,35 @@ function toggleSelectedDay(day) {
   updateSelectedDaysDisplay();
 }
 
+function formatDaysToInput(days) {
+  if (!Array.isArray(days) || days.length === 0) return "";
+  const sorted = [...days].sort((a, b) => a - b);
+  const parts = [];
+  let start = sorted[0];
+  let prev = sorted[0];
+  for (let i = 1; i < sorted.length; i += 1) {
+    const cur = sorted[i];
+    if (cur === prev + 1) {
+      prev = cur;
+      continue;
+    }
+    if (start === prev) {
+      parts.push(String(start));
+    } else {
+      parts.push(`${start}-${prev}`);
+    }
+    start = cur;
+    prev = cur;
+  }
+  // push last
+  if (start === prev) {
+    parts.push(String(start));
+  } else {
+    parts.push(`${start}-${prev}`);
+  }
+  return parts.join(",");
+}
+
 function startEditingRow(rowId) {
   const row = selectionRows.find((item) => item.id === rowId);
   if (!row) {
@@ -397,6 +426,18 @@ function startEditingRow(rowId) {
   viewAllMode = false;
   viewAllButton.classList.remove("active");
   viewAllButton.textContent = "Chế độ chọn tất cả ngày";
+
+  // If the app is currently in input mode, open the input box and prefill with the row's days
+  if (inputMode === 'input' && dateInputContainer && dateInputTextarea) {
+    dateInputContainer.classList.remove('hidden');
+    // hide the calendar (user requested to hide calendar in input mode)
+    if (calendarGrid) calendarGrid.classList.add('hidden');
+    // prefill textarea with compact ranges
+    dateInputTextarea.value = formatDaysToInput(row.days);
+  } else {
+    // normal edit behavior: show calendar for selecting
+    if (calendarGrid) calendarGrid.classList.remove('hidden');
+  }
 
   renderCalendar();
   updateSelectedDaysDisplay();
@@ -435,9 +476,9 @@ function setInputMode(mode) {
     modeInputButton.setAttribute('aria-selected', 'true');
     modeSelectButton.classList.remove('active');
     modeSelectButton.setAttribute('aria-selected', 'false');
-    // show input box; do NOT hide calendar or selected-days — user requested both visible
+    // show input box; hide calendar/weekday as requested
     if (dateInputContainer) dateInputContainer.classList.remove('hidden');
-    if (calendarGrid) calendarGrid.classList.remove('hidden');
+    if (calendarGrid) calendarGrid.classList.add('hidden');
     // keep selected-days visible (respect layout mode)
     selectedDaysTableWrapper.classList.toggle('hidden', layoutMode === 'inline');
     selectedDaysInline.classList.toggle('hidden', layoutMode === 'table');
@@ -528,11 +569,21 @@ function applyDateInput() {
     // otherwise ignore token
   });
 
+  // If currently editing a specific row, and that row's year-month exists in additions,
+  // replace that row's days instead of merging
+  const editRow = activeRowId ? selectionRows.find((r) => r.id === activeRowId) : null;
+
   Object.keys(additions).forEach((key) => {
     const [y, mo] = key.split("-").map(Number);
     const maxDay = new Date(y, mo, 0).getDate();
     const days = Array.from(additions[key]).filter((n) => Number.isInteger(n) && n >= 1 && n <= maxDay);
     if (!days.length) return;
+
+    if (editRow && editRow.year === y && editRow.month === mo) {
+      // replace edited row
+      editRow.days = Array.from(new Set(days)).sort((a, b) => a - b);
+      return;
+    }
 
     // merge into an existing row for same year/month if present, otherwise create new
     let row = selectionRows.find((r) => r.year === y && r.month === mo);
@@ -546,9 +597,9 @@ function applyDateInput() {
     row.days = Array.from(new Set([...row.days, ...days])).sort((a, b) => a - b);
   });
 
-  // If user was in input mode, keep them in input mode after applying (but restore selected-days visibility)
+  // If user was in input mode, keep them in input mode after applying
+  // (calendar is hidden in input mode; selected-days remain visible)
   if (inputMode === 'input') {
-    // keep mode but restore selected-days visibility to reflect new data when switching back
     selectedDaysTableWrapper.classList.toggle('hidden', layoutMode === 'inline');
     selectedDaysInline.classList.toggle('hidden', layoutMode === 'table');
   }
