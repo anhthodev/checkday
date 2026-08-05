@@ -280,22 +280,7 @@ function getJapaneseHolidays(year) {
   addHoliday(11, 3, "文化の日");
   addHoliday(11, 23, "勤労感謝の日");
 
-  const substituteHolidays = [];
-  for (const [key] of holidays) {
-    const [month, day] = key.split("-").map(Number);
-    const date = new Date(year, month - 1, day);
-    if (date.getDay() === 0) {
-      substituteHolidays.push({ month, day });
-    }
-  }
-
-  substituteHolidays.forEach(({ month, day }) => {
-    let substituteDay = day + 1;
-    while (holidays.has(`${month}-${substituteDay}`)) {
-      substituteDay += 1;
-    }
-    holidays.set(`${month}-${substituteDay}`, { name: "振替休日" });
-  });
+ 
 
   for (let month = 1; month <= 12; month += 1) {
     const daysCount = new Date(year, month, 0).getDate();
