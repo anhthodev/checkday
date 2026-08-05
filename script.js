@@ -383,10 +383,10 @@ function toggleSelectedDay(day) {
 }
 
 function formatDaysToInput(days) {
-  // Return expanded comma-separated list (no ranges) per user's request: e.g., "1,2,3,5"
+  // Return expanded hyphen-separated list per user's latest request: e.g., "1-2-3-5"
   if (!Array.isArray(days) || days.length === 0) return "";
   const sorted = [...new Set(days)].sort((a, b) => a - b);
-  return sorted.join(",");
+  return sorted.join("-");
 }
 
 function startEditingRow(rowId) {
@@ -482,8 +482,16 @@ function applyDateInput() {
     return;
   }
 
-  // split only by commas as requested
-  const tokens = raw.split(',').map((s) => s.trim()).filter(Boolean);
+  // Tokenization: user requested '-' as the separator for list entries.
+  // However, if input contains a full ISO date (YYYY-MM-DD), treat those specially and
+  // split by commas/newlines to avoid breaking the date format.
+  let tokens = [];
+  if (/\d{4}[\/\.-]\d{1,2}[\/\.-]\d{1,2}/.test(raw)) {
+    tokens = raw.split(/[\n,;]+/).map((s) => s.trim()).filter(Boolean);
+  } else {
+    tokens = raw.split('-').map((s) => s.trim()).filter(Boolean);
+  }
+
   const additions = {}; // key: "year-month" -> Set(days)
 
   // If only numbers provided without year/month, they apply to currently selected year/month
@@ -502,8 +510,8 @@ function applyDateInput() {
       return;
     }
 
-    // MM-DD or MM/DD or MM.DD (use selected year)
-    m = token.match(/^(\d{1,2})[\/\.-](\d{1,2})$/);
+    // MM-DD or MM/DD or MM.DD (use selected year) - if token contains a slash or dot
+    m = token.match(/^(\d{1,2})[\/\.](\d{1,2})$/);
     if (m) {
       const mo = Number(m[1]);
       const d = Number(m[2]);
@@ -515,23 +523,7 @@ function applyDateInput() {
       return;
     }
 
-    // Range within current month: DD-DD
-    m = token.match(/^(\d{1,2})\s*-\s*(\d{1,2})$/);
-    if (m) {
-      const start = Number(m[1]);
-      const end = Number(m[2]);
-      const y = Number(yearSelect.value);
-      const mo = Number(monthSelect.value);
-      if (!y || !mo) return;
-      const key = `${y}-${mo}`;
-      additions[key] = additions[key] || new Set();
-      for (let d = Math.min(start, end); d <= Math.max(start, end); d += 1) {
-        additions[key].add(d);
-      }
-      return;
-    }
-
-    // Single day (DD) in current month/year
+    // Single day (DD) in current month/year (tokens after splitting on '-')
     m = token.match(/^(\d{1,2})$/);
     if (m) {
       const d = Number(m[1]);
