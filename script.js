@@ -17,6 +17,7 @@ const selectionRows = [];
 const groupOrder = [];
 let currentSelection = new Set();
 let activeRowId = null;
+let editingRowId = null;
 let currentActiveYear = null;
 let currentActiveMonth = null;
 let nextRowId = 1;
@@ -327,8 +328,25 @@ function getJapaneseHolidays(year) {
 }
 
 function handleMonthChange() {
-  currentActiveYear = Number(yearSelect.value);
-  currentActiveMonth = Number(monthSelect.value);
+  const selectedYear = Number(yearSelect.value);
+  const selectedMonth = Number(monthSelect.value);
+  currentActiveYear = selectedYear;
+  currentActiveMonth = selectedMonth;
+
+  if (editingRowId) {
+    const row = selectionRows.find((item) => item.id === editingRowId);
+    if (row) {
+      row.year = selectedYear;
+      row.month = selectedMonth;
+      const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
+      row.days = row.days.filter((day) => day >= 1 && day <= daysInMonth);
+      currentSelection = new Set(row.days.map((dayValue) => getDateKey(selectedYear, selectedMonth, dayValue)));
+      renderCalendar();
+      updateSelectedDaysDisplay();
+      return;
+    }
+  }
+
   activeRowId = null;
   currentSelection.clear();
   viewAllMode = false;
@@ -400,6 +418,7 @@ function startEditingRow(rowId) {
   currentActiveYear = row.year;
   currentActiveMonth = row.month;
   activeRowId = row.id;
+  editingRowId = row.id;
   currentSelection = new Set(row.days.map((dayValue) => getDateKey(row.year, row.month, dayValue)));
   viewAllMode = false;
   viewAllButton.classList.remove("active");
@@ -412,9 +431,14 @@ function startEditingRow(rowId) {
     if (calendarGrid) calendarGrid.classList.add('hidden');
     // prefill textarea with compact ranges
     dateInputTextarea.value = formatDaysToInput(row.days);
+    updateInputButtonText();
   } else {
     // normal edit behavior: show calendar for selecting
     if (calendarGrid) calendarGrid.classList.remove('hidden');
+  }
+
+  if (applyDateInputButton) {
+    applyDateInputButton.textContent = editingRowId ? "Cập nhật" : "Áp dụng";
   }
 
   renderCalendar();
@@ -448,6 +472,9 @@ function toggleViewAllMode() {
 
 function setInputMode(mode) {
   inputMode = mode === 'input' ? 'input' : 'select';
+  if (applyDateInputButton) {
+    applyDateInputButton.textContent = editingRowId ? "Cập nhật" : "Áp dụng";
+  }
   // Persist and update UI
   if (inputMode === 'input') {
     modeInputButton.classList.add('active');
@@ -540,8 +567,8 @@ function applyDateInput() {
   });
 
   // If currently editing a specific row, and that row's year-month exists in additions,
-  // replace that row's days instead of merging
-  const editRow = activeRowId ? selectionRows.find((r) => r.id === activeRowId) : null;
+  // replace that row's days instead of merging.
+  const editRow = editingRowId ? selectionRows.find((r) => r.id === editingRowId) : null;
 
   Object.keys(additions).forEach((key) => {
     const [y, mo] = key.split("-").map(Number);
@@ -574,6 +601,7 @@ function applyDateInput() {
     selectedDaysInline.classList.toggle('hidden', layoutMode === 'table');
   }
 
+  updateInputButtonText();
   saveState();
   // Clear the textarea but keep the input box open (per request)
   dateInputTextarea.value = "";
@@ -583,8 +611,21 @@ function applyDateInput() {
 }
 
 function cancelDateInput() {
-  // Per request: Cancel should just clear the input but keep input box open while in input mode.
+  // Per request: Cancel should clear the input and exit any edit session so the user can enter new days.
   if (dateInputTextarea) dateInputTextarea.value = "";
+  if (editingRowId !== null) {
+    editingRowId = null;
+    activeRowId = null;
+    currentSelection.clear();
+    renderCalendar();
+    updateSelectedDaysDisplay();
+  }
+  updateInputButtonText();
+}
+
+function updateInputButtonText() {
+  if (!applyDateInputButton) return;
+  applyDateInputButton.textContent = editingRowId ? "Cập nhật" : "Áp dụng";
 }
 
 function toggleLayoutMode() {
@@ -629,6 +670,7 @@ function resetSelection() {
     const activeRowStillExists = selectionRows.some((item) => item.id === activeRowId);
     if (!activeRowStillExists) {
       activeRowId = null;
+      editingRowId = null;
       currentSelection.clear();
     }
   }
@@ -648,6 +690,7 @@ function clearAllSelection() {
   selectionRows.length = 0;
   groupOrder.length = 0;
   activeRowId = null;
+  editingRowId = null;
   currentSelection.clear();
   renderCalendar();
   updateSelectedDaysDisplay();
@@ -735,6 +778,21 @@ function loadState() {
 function updateSelectedDaysDisplay() {
   selectedDaysTableBody.innerHTML = "";
   selectedDaysInline.innerHTML = "";
+  const showYear = new Set(selectionRows.map((row) => row.year)).size > 1;
+  const headerRow = document.querySelector("#selectedDaysTable thead tr");
+  if (headerRow) {
+    const yearHeader = headerRow.querySelector("[data-year-header]");
+    if (showYear) {
+      if (!yearHeader) {
+        const yearTh = document.createElement("th");
+        yearTh.textContent = "Năm";
+        yearTh.dataset.yearHeader = "true";
+        headerRow.insertBefore(yearTh, headerRow.firstChild);
+      }
+    } else if (yearHeader) {
+      yearHeader.remove();
+    }
+  }
 
   if (!selectionRows.length) {
     selectedDaysTableWrapper.classList.toggle("hidden", layoutMode === "inline");
@@ -743,7 +801,7 @@ function updateSelectedDaysDisplay() {
     if (layoutMode === "table") {
       const emptyRow = document.createElement("tr");
       const emptyCell = document.createElement("td");
-      emptyCell.colSpan = 3;
+      emptyCell.colSpan = showYear ? 4 : 3;
       emptyCell.className = "empty-state";
       emptyCell.textContent = "Chưa có ngày nào được chọn.";
       emptyRow.appendChild(emptyCell);
@@ -765,8 +823,6 @@ function updateSelectedDaysDisplay() {
   selectedDaysInline.classList.toggle("hidden", layoutMode === "table");
   selectedDaysPanel.classList.toggle("hide-actions", hideActions);
   toggleMoveButtonsButton.disabled = layoutMode === "table";
-
-  const showYear = new Set(selectionRows.map((row) => row.year)).size > 1;
 
   if (layoutMode === "inline") {
     const inlineContainer = document.createElement("div");
@@ -837,7 +893,15 @@ function updateSelectedDaysDisplay() {
           }
           if (activeRowId === row.id) {
             activeRowId = null;
+          }
+          if (editingRowId === row.id) {
+            editingRowId = null;
+          }
+          if (activeRowId === null) {
             currentSelection.clear();
+          }
+          if (applyDateInputButton) {
+            applyDateInputButton.textContent = editingRowId ? "Cập nhật" : "Áp dụng";
           }
           renderCalendar();
           updateSelectedDaysDisplay();
@@ -858,8 +922,14 @@ function updateSelectedDaysDisplay() {
   selectionRows.forEach((row) => {
     const rowElement = document.createElement("tr");
 
+    if (showYear) {
+      const yearCell = document.createElement("td");
+      yearCell.textContent = String(row.year);
+      rowElement.appendChild(yearCell);
+    }
+
     const monthCell = document.createElement("td");
-    monthCell.textContent = showYear ? `${row.year}年${row.month}月` : `${row.month}月`;
+    monthCell.textContent = `${row.month}月`;
     rowElement.appendChild(monthCell);
 
     const dayCell = document.createElement("td");
@@ -900,7 +970,15 @@ function updateSelectedDaysDisplay() {
       }
       if (activeRowId === row.id) {
         activeRowId = null;
+      }
+      if (editingRowId === row.id) {
+        editingRowId = null;
+      }
+      if (activeRowId === null) {
         currentSelection.clear();
+      }
+      if (applyDateInputButton) {
+        applyDateInputButton.textContent = editingRowId ? "Cập nhật" : "Áp dụng";
       }
       renderCalendar();
       updateSelectedDaysDisplay();
