@@ -32,7 +32,7 @@ const modeSelectButton = document.getElementById("modeSelectButton");
 const modeInputButton = document.getElementById("modeInputButton");
 const dateInputContainer = document.getElementById("dateInputContainer");
 const dateInputTextarea = document.getElementById("dateInputTextarea");
-const applyDateInputButton = document.getElementById("applyDateInputButton");
+const Button = document.getElementById("Button");
 const cancelDateInputButton = document.getElementById("cancelDateInputButton");
 const clearAllButton = document.getElementById("clearAllButton");
 const layoutToggleButton = document.getElementById("layoutToggleButton");
@@ -180,7 +180,7 @@ function initializeApp() {
   // Mode buttons
   if (modeSelectButton) modeSelectButton.addEventListener("click", () => setInputMode('select'));
   if (modeInputButton) modeInputButton.addEventListener("click", () => setInputMode('input'));
-  if (applyDateInputButton) applyDateInputButton.addEventListener("click", applyDateInput);
+  if (Button) Button.addEventListener("click", );
   if (cancelDateInputButton) cancelDateInputButton.addEventListener("click", cancelDateInput);
   yearSelect.addEventListener("change", handleMonthChange);
   monthSelect.addEventListener("change", handleMonthChange);
@@ -437,8 +437,8 @@ function startEditingRow(rowId) {
     if (calendarGrid) calendarGrid.classList.remove('hidden');
   }
 
-  if (applyDateInputButton) {
-    applyDateInputButton.textContent = editingRowId ? "Cập nhật" : "Áp dụng";
+  if (Button) {
+    Button.textContent = editingRowId ? "Cập nhật" : "Áp dụng";
   }
 
   renderCalendar();
@@ -472,8 +472,8 @@ function toggleViewAllMode() {
 
 function setInputMode(mode) {
   inputMode = mode === 'input' ? 'input' : 'select';
-  if (applyDateInputButton) {
-    applyDateInputButton.textContent = editingRowId ? "Cập nhật" : "Áp dụng";
+  if (Button) {
+    Button.textContent = editingRowId ? "Cập nhật" : "Áp dụng";
   }
   // Persist and update UI
   if (inputMode === 'input') {
@@ -503,113 +503,136 @@ function setInputMode(mode) {
 
 function applyDateInput() {
   if (!dateInputTextarea) return;
+
   const raw = dateInputTextarea.value.trim();
   if (!raw) {
     alert("Vui lòng nhập ít nhất một ngày.");
     return;
   }
 
-  // Tokenization: user requested '-' as the separator for list entries.
-  // However, if input contains a full ISO date (YYYY-MM-DD), treat those specially and
-  // split by commas/newlines to avoid breaking the date format.
-  let tokens = [];
-  if (/\d{4}[\/\.-]\d{1,2}[\/\.-]\d{1,2}/.test(raw)) {
-    tokens = raw.split(/[\n,;]+/).map((s) => s.trim()).filter(Boolean);
-  } else {
-    tokens = raw.split('-').map((s) => s.trim()).filter(Boolean);
-  }
+  // Mỗi dòng là một ngày
+  const tokens = raw
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
 
   const additions = {}; // key: "year-month" -> Set(days)
 
-  // If only numbers provided without year/month, they apply to currently selected year/month
-
   tokens.forEach((token) => {
     let m;
-    // YYYY-MM-DD or YYYY/MM/DD or YYYY.MM.DD
-    m = token.match(/^(\d{4})[\/\.-](\d{1,2})[\/\.-](\d{1,2})$/);
+
+    // YYYY-MM-DD hoặc YYYY/MM/DD hoặc YYYY.MM.DD
+    m = token.match(/^(\d{4})[/.-](\d{1,2})[/.-](\d{1,2})$/);
     if (m) {
       const y = Number(m[1]);
       const mo = Number(m[2]);
       const d = Number(m[3]);
+
       const key = `${y}-${mo}`;
       additions[key] = additions[key] || new Set();
       additions[key].add(d);
       return;
     }
 
-    // MM-DD or MM/DD or MM.DD (use selected year) - if token contains a slash or dot
-    m = token.match(/^(\d{1,2})[\/\.](\d{1,2})$/);
+    // MM-DD hoặc MM/DD hoặc MM.DD (dùng năm đang chọn)
+    m = token.match(/^(\d{1,2})[\/.-](\d{1,2})$/);
     if (m) {
       const mo = Number(m[1]);
       const d = Number(m[2]);
       const y = Number(yearSelect.value);
+
       if (!y) return;
+
       const key = `${y}-${mo}`;
       additions[key] = additions[key] || new Set();
       additions[key].add(d);
       return;
     }
 
-    // Single day (DD) in current month/year (tokens after splitting on '-')
+    // DD (ngày trong tháng đang chọn)
     m = token.match(/^(\d{1,2})$/);
     if (m) {
       const d = Number(m[1]);
       const y = Number(yearSelect.value);
       const mo = Number(monthSelect.value);
+
       if (!y || !mo) return;
+
       const key = `${y}-${mo}`;
       additions[key] = additions[key] || new Set();
       additions[key].add(d);
       return;
     }
 
-    // otherwise ignore token
+    // Không đúng định dạng thì bỏ qua
   });
 
-  // If currently editing a specific row, and that row's year-month exists in additions,
-  // replace that row's days instead of merging.
-  const editRow = editingRowId ? selectionRows.find((r) => r.id === editingRowId) : null;
+  // Nếu đang sửa một dòng thì thay thế ngày của dòng đó
+  const editRow = editingRowId
+    ? selectionRows.find((r) => r.id === editingRowId)
+    : null;
 
   Object.keys(additions).forEach((key) => {
     const [y, mo] = key.split("-").map(Number);
+
     const maxDay = new Date(y, mo, 0).getDate();
-    const days = Array.from(additions[key]).filter((n) => Number.isInteger(n) && n >= 1 && n <= maxDay);
+
+    const days = Array.from(additions[key]).filter(
+      (n) => Number.isInteger(n) && n >= 1 && n <= maxDay
+    );
+
     if (!days.length) return;
 
     if (editRow && editRow.year === y && editRow.month === mo) {
-      // replace edited row
-      editRow.days = Array.from(new Set(days)).sort((a, b) => a - b);
+      // Thay thế dòng đang sửa
+      editRow.days = [...new Set(days)].sort((a, b) => a - b);
       return;
     }
 
-    // merge into an existing row for same year/month if present, otherwise create new
-    let row = selectionRows.find((r) => r.year === y && r.month === mo);
+    // Gộp vào dòng cùng tháng nếu đã tồn tại
+    let row = selectionRows.find(
+      (r) => r.year === y && r.month === mo
+    );
+
     if (!row) {
       const id = nextRowId++;
-      row = { id, year: y, month: mo, days: [], groupId: id };
+      row = {
+        id,
+        year: y,
+        month: mo,
+        days: [],
+        groupId: id,
+      };
       selectionRows.push(row);
       addGroupOrder(id);
     }
 
-    row.days = Array.from(new Set([...row.days, ...days])).sort((a, b) => a - b);
+    row.days = [...new Set([...row.days, ...days])].sort(
+      (a, b) => a - b
+    );
   });
 
-  // If user was in input mode, keep them in input mode after applying
-  // (calendar is hidden in input mode; selected-days remain visible)
-  if (inputMode === 'input') {
-    selectedDaysTableWrapper.classList.toggle('hidden', layoutMode === 'inline');
-    selectedDaysInline.classList.toggle('hidden', layoutMode === 'table');
+  // Nếu đang ở chế độ nhập thì giữ nguyên chế độ
+  if (inputMode === "input") {
+    selectedDaysTableWrapper.classList.toggle(
+      "hidden",
+      layoutMode === "inline"
+    );
+    selectedDaysInline.classList.toggle(
+      "hidden",
+      layoutMode === "table"
+    );
   }
 
   updateInputButtonText();
   saveState();
-  // Clear the textarea but keep the input box open (per request)
+
+  // Xóa nội dung nhưng giữ ô nhập mở
   dateInputTextarea.value = "";
-  // Keep inputMode as 'input' and keep the dateInputContainer visible so user can continue entering
+
   renderCalendar();
   updateSelectedDaysDisplay();
 }
-
 function cancelDateInput() {
   // Per request: Cancel should clear the input and exit any edit session so the user can enter new days.
   if (dateInputTextarea) dateInputTextarea.value = "";
