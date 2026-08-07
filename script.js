@@ -32,7 +32,7 @@ const modeSelectButton = document.getElementById("modeSelectButton");
 const modeInputButton = document.getElementById("modeInputButton");
 const dateInputContainer = document.getElementById("dateInputContainer");
 const dateInputTextarea = document.getElementById("dateInputTextarea");
-const Button = document.getElementById("Button");
+const applyDateInputButton = document.getElementById("applyDateInputButton");
 const cancelDateInputButton = document.getElementById("cancelDateInputButton");
 const clearAllButton = document.getElementById("clearAllButton");
 const layoutToggleButton = document.getElementById("layoutToggleButton");
@@ -180,7 +180,7 @@ function initializeApp() {
   // Mode buttons
   if (modeSelectButton) modeSelectButton.addEventListener("click", () => setInputMode('select'));
   if (modeInputButton) modeInputButton.addEventListener("click", () => setInputMode('input'));
-  if (Button) Button.addEventListener("click", );
+  if (applyDateInputButton) applyDateInputButton.addEventListener("click", applyDateInput);
   if (cancelDateInputButton) cancelDateInputButton.addEventListener("click", cancelDateInput);
   yearSelect.addEventListener("change", handleMonthChange);
   monthSelect.addEventListener("change", handleMonthChange);
@@ -437,8 +437,8 @@ function startEditingRow(rowId) {
     if (calendarGrid) calendarGrid.classList.remove('hidden');
   }
 
-  if (Button) {
-    Button.textContent = editingRowId ? "Cập nhật" : "Áp dụng";
+  if (applyDateInputButton) {
+    applyDateInputButton.textContent = editingRowId ? "Cập nhật" : "Áp dụng";
   }
 
   renderCalendar();
@@ -472,8 +472,8 @@ function toggleViewAllMode() {
 
 function setInputMode(mode) {
   inputMode = mode === 'input' ? 'input' : 'select';
-  if (Button) {
-    Button.textContent = editingRowId ? "Cập nhật" : "Áp dụng";
+  if (applyDateInputButton) {
+    applyDateInputButton.textContent = editingRowId ? "Cập nhật" : "Áp dụng";
   }
   // Persist and update UI
   if (inputMode === 'input') {
@@ -633,6 +633,7 @@ function applyDateInput() {
   renderCalendar();
   updateSelectedDaysDisplay();
 }
+
 function cancelDateInput() {
   // Per request: Cancel should clear the input and exit any edit session so the user can enter new days.
   if (dateInputTextarea) dateInputTextarea.value = "";
